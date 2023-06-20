@@ -1,0 +1,20 @@
+Changelog for ClusterImfit
+
+	28.10.2015
+
+	* PyGene module added locally
+	* Fixed parameters are allowed now
+	* The name of the input file with model is the first argument now
+	* A bunch of new parameters was added to the config file (see the list in exmaple of the config file)
+
+	30.10.2015
+	* Computation of chi squared is being performed now with --fitstat-only key
+
+	3.11.2015
+	* Checking if resulting parameters are close to their boundaries given in the input file
+
+	3.12.2015
+	* saveGens, runLM, numOfLM, LMCores parameters was added to the config file
+
+	23.01.2016
+	* model_to_text option is added

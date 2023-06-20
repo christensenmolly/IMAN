@@ -1,0 +1,47 @@
+
+#  Input menu file: galfit.inp
+
+#  Chi^2/nu = 4.142,  Chi^2 = 113398.828,  Ndof = 27376
+
+================================================================================
+# IMAGE and GALFIT CONTROL PARAMETERS
+A) none      # Input data image (FITS file)
+B) model.fits          # Output data image block
+C) none      # Sigma image name (made from data if blank or "none") 
+D) psf.fits          # Input PSF image and (optional) diffusion kernel
+E) 1                   # PSF fine sampling factor relative to data 
+F) none       # Bad pixel mask (FITS image or ASCII coord list)
+G) none                # File with parameter constraints (ASCII file) 
+H) 101    101  1    250  # Image region to fit (xmin xmax ymin ymax)
+I) 703    703          # Size of the convolution box (x y)
+J) 20.000              # Magnitude photometric zeropoint 
+K) 3.000  3.000        # Plate scale (dx dy)   [arcsec per pixel]
+O) regular             # Display type (regular, curses, both)
+P) 1                   # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps
+
+# INITIAL FITTING PARAMETERS
+#
+#   For component type, the allowed functions are: 
+#       sersic, expdisk, edgedisk, devauc, king, nuker, psf, 
+#       gaussian, moffat, ferrer, and sky. 
+#  
+#   Hidden parameters will only appear when they're specified:
+#       Bn (n=integer, Bending Modes).
+#       C0 (diskyness/boxyness), 
+#       Fn (n=integer, Azimuthal Fourier Modes).
+#       R0-R10 (coordinate rotation, for creating spiral structures).
+#       To, Ti, T0-T10 (truncation function).
+# 
+# ------------------------------------------------------------------------------
+#   par)    par value(s)    fit toggle(s)    # parameter description 
+# ------------------------------------------------------------------------------
+
+# Component number: 1
+ 0) psf                # object type
+ 1) 102.3  145.9  1 1  # position x, y        [pixel]
+ 3) 18.5       1       # total magnitude     
+ Z) 0                  #  Skip this model in output image?  (yes=1, no=0)
+
+
+================================================================================
+

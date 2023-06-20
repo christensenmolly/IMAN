@@ -1,0 +1,335 @@
+# IMAN
+
+A package for performing galaxy image preparation and analysis. It includes different individual scripts and suites of scriptes combined in several subpackages.
+
+# Requirements
+
+Python 3.6 (or newer) with following modules
+
+	- numpy
+	- astropy
+	- joblib
+	- intertools
+	- matplotlib
+	- scipy
+	- photutils
+	- shapely
+	- astroquery
+	- scikit-image
+	- pyclipper
+	- montage-wrapper
+	- pyregion
+	- extinction
+	- python3_tk
+	- latex(texlive-full)
+
+Also, in some scripts the following codes are required:
+
+	- SAO IMAGE DS9
+	- SExtractor
+	- SWarp
+	- Montage
+	- GALFIT
+	- IMFIT
+	- IRAF (with STSDAS)
+
+# Installation
+
+Pull or download the package wherever you want and execute /IMAN/imp/masking/mto-lib/recompile.sh. Note that this package uses a modified version of the MTO_lib package (https://github.com/CarolineHaigh/mtobjects/tree/master/mtolib) which was not written by me.
+
+# Usage
+
+Below I list some (not all!) scripts which can usually be run from the terminal. Remaining scripts usually include functions which can be called from your scripts. 
+
+./iraf_fitting
+
+	./iraf_fitting/compare_iraf_results.py
+		DESCRIPTION: Compare results from two output files from IRAF/ELLIPSE
+
+
+	./iraf_fitting/iraf_ellipse.py
+		DESCRIPTION: STSDAS IRAF/ELLIPSE fitting. IRAF is required. Do not create your own login.cl where you launch this script. 
+		MINIMAL USAGE: python  iraf_ellipse.py [input_image]
+
+
+	./iraf_fitting/compare_iraf_and_ellipse.py
+		DESCRIPTION: profile with fixed PA and ellipticity.
+		MINIMAL USAGE: python  compare_iraf_and_ellipse.py [iraf_output] [ellipse_output]
+
+
+	./iraf_fitting/plot_iraf_ellipse.py
+		DESCRIPTION: STSDAS IRAF/ELLIPSE fitting. IRAF is required. Do not create your own login.cl where you launch this script. 
+		MINIMAL USAGE: python  iraf_ellipse.py [input_image]
+
+
+./detect_objects
+
+	./detect_objects/cross_SEcat_Hyperleda.py
+		DESCRIPTION: Script to cross-correlate SE catalog and HyperLeda.
+
+
+./extinction_maps
+
+	./extinction_maps/schlafly_extinction.py
+		DESCRIPTION: Script to rebin image to a reference image.
+		MINIMAL USAGE: python  schlafly_extinction.py [input_object] [wavelength_nm]
+
+
+./misc_funcs
+
+	./misc_funcs/run_SExtractor_old.py
+		DESCRIPTION: Script to run SExtractor.
+		MINIMAL USAGE: python sextr.py [input_image]
+
+
+	./misc_funcs/remove_nonobject_isophotes.py
+		DESCRIPTION: The masked areas can be enlarged (by multiplication or subtraction).
+		MINIMAL USAGE: python auto_masking.py [input_image]
+
+
+./imp
+
+	./imp/prepare_galaxies.py
+		DESCRIPTION: Script to prepare galaxy images, which have been initially reduced. One should create a special table which should be given as an input.
+		MINIMAL USAGE: python prepare_galaxies.py [input_table] [number_of_item_in_table]
+
+
+	./imp/IMP.py
+		DESCRIPTION: Script to prepare galaxy images
+		MINIMAL USAGE: python IMP.py [input_image]
+
+
+./sextractor
+
+	./sextractor/read_SEcat.py
+		DESCRIPTION: EXAMPLE: X_IMAGE,Y_IMAGE,A_IMAGE,B_IMAGE,KRON_RADIUS,THETA_IMAGE,CLASS_STAR = find_sex_column('field.cat', ['X_IMAGE','Y_IMAGE','A_IMAGE','B_IMAGE','KRON_RADIUS','THETA_IMAGE','CLASS_STAR'], float)
+
+
+	./sextractor/run_SExtractor.py
+		DESCRIPTION: Script to run SExtractor.
+		MINIMAL USAGE: python run_SExtractor.py [input_image]
+
+
+./colours
+
+	./colours/colour_map.py
+		DESCRIPTION: Script to create a colour map as a residual between two images of the same object in different wavebands. It takes into account PSF for each image (to reduce to the same resolution) and Galactic extinction in each band. Note that both images should have the same scale and orientation.
+		MINIMAL USAGE: python colour_map.py [input_image_1] [input_image_2] [psf_image_1] [psf_image_2] [pixel_scale] [A1] [A2] [ZP1] [ZP2] 
+
+
+./fit_features/lsb
+
+	./fit_features/lsb/mask_within_isophote.py
+		DESCRIPTION: Script to prepare galaxy images
+		MINIMAL USAGE: python IMP.py [input_image]
+
+
+./decomposition/simple_fitting
+
+	./decomposition/simple_fitting/add_keyw_to_header.py
+		DESCRIPTION: Add keywords to header.
+		MINIMAL USAGE: python add_keyw_to_header.py [input_image] [--KEYWORD] [VALUE]
+
+
+	./decomposition/simple_fitting/sersic_fitting.py
+		DESCRIPTION: GALFIT fitting with a simple sersic function.
+		MINIMAL USAGE: python sersic_fitting.py [input_image]
+
+
+./imp/add_astrometry
+
+	./imp/add_astrometry/add_wcs.py
+		DESCRIPTION: ra,dec , where ra and dec are give in degrees (decimals).
+		# NOTE: Sometimes it produces wrong resuts. For adding robust wcs you should then feed the output image into nova.astrometry.net.
+		MINIMAL USAGE: python add_wcs.py [input_image] [input_region_with_ref_stars]
+
+
+	./imp/add_astrometry/create_astrom_stars.py
+		DESCRIPTION: For the input and reference image, each star should be presented by a circle region with a label (text) which is the unique number of this star. The same stars in the reference and input image should have the same number.
+		# NOTE: After launching this script, the output region file can be used for add_wcs.py as region_file.
+		MINIMAL USAGE: python create_astrom_stars.py [input_image] [reference_image] [region_file_image] [region_file_reference] 
+
+
+	./imp/add_astrometry/add_simple_wcs.py
+		DESCRIPTION: along with its WCS coordinates (RA_ref, DEC_ref), pixelscale (CDELT1, CDELT2 -in deg) and rotation angle CROTA2 (otherwise 0).
+		# NOTE: For adding robust wcs you should then feed the output image into nova.astrometry.net.
+		MINIMAL USAGE: python add_simple_wcs.py [input_image] [x_ref] [y_ref] [RA_ref] [DEC_ref] [cdelt1] [cdelt2]
+
+
+./imp/misc
+
+	./imp/misc/create_image.py
+		DESCRIPTION: The masked areas can be enlarged (by multiplication or subtraction).
+		MINIMAL USAGE: python auto_masking.py [input_image]
+
+
+	./imp/misc/flip_image.py
+		DESCRIPTION: Script to flip image in the left/right or up/down direction.
+		MINIMAL USAGE: python flip_image.py [input_image]
+
+
+	./imp/misc/calibration.py
+		DESCRIPTION: and searches them in a catalogue.
+		MINIMAL USAGE: python calibration.py [input_image]
+
+
+./imp/sky_fitting
+
+	./imp/sky_fitting/test_for_deepness.py
+		DESCRIPTION: Script to estimate the limiting SB for a given aperture. Also, it calculates std and mean (median) values of the background.
+		MINIMAL USAGE: python test_for_deepness.py [input_image] [mask_image] [ZP] [scale]
+
+
+	./imp/sky_fitting/subtract_lines.py
+		DESCRIPTION: Script to fit sky background along the lines (rows) inclined by PA. A mask is required.
+		MINIMAL USAGE: python subtract_lines.py [input_image] [input_mask]
+
+
+	./imp/sky_fitting/fit_some_sky.py
+		DESCRIPTION: Script to fit sky with polygons specified in a region file.
+		MINIMAL USAGE: fit_some_sky.py [input_image] [region_file]
+
+
+	./imp/sky_fitting/determine_sky.py
+		DESCRIPTION: Script to fit sky background with a polynomial of n degree. A mask is required.
+		MINIMAL USAGE: python determine_sky.py [input_image] [input_mask]
+
+
+	./imp/sky_fitting/sky_around_galaxy.py
+		DESCRIPTION: A script to fit sky background in an annulus around galaxy. An outer galaxy ellipse --galaxy_ellipse (where outermost isophotes end) is required, either as a DS9 region file (ellipse region in images coordinates), or in the format xc,yc,sma,smb,PA. The width of the annulus is controlled by the key --annulus_width (in pix). To check the annulus in DS9 before starting the fitting the key --manual should be given. For now, only constant background level (--degree 0) within the annulus is computed.
+		MINIMAL USAGE: python sky_around_galaxy.py [input_image] --galaxy_ellipse [region_file OR xc,yc,sma,smb,PA]
+
+
+	./imp/sky_fitting/backEst.py
+		DESCRIPTION: More sophisticated script to estimate sky background using different approaches. No mask is required.
+		MINIMAL USAGE: python backEst.py [input_image]
+
+
+	./imp/sky_fitting/check_background.py
+		DESCRIPTION: Script to check the background. A mask is required.
+		MINIMAL USAGE: python check_background.py [input_image] [input_mask]
+
+
+./imp/rotate
+	./imp/r
+	otate/rotate_image.py
+		DESCRIPTION: Rotation is done CW/x, i.e. 0 is right, 90 is down
+		MINIMAL USAGE: python rotate_image.py [input_image] [angle]
+
+
+./imp/rebinning
+
+	./imp/rebinning/rebin_image.py
+		DESCRIPTION: Script to rebin image to a reference image.
+		MINIMAL USAGE: python rebin_image.py [input_image] [reference_image]
+
+
+	./imp/rebinning/sample_image.py
+		DESCRIPTION: Script to rebin image to a reference image.
+		MINIMAL USAGE: python rebin_image.py [input_image] [reference_image]
+
+
+./imp/cropping
+
+	./imp/cropping/measure_galaxy_center.py
+		DESCRIPTION: Script to fit galaxy centre
+
+
+	./imp/cropping/crop_image.py
+		DESCRIPTION: saved in the output_image. This function keeps the WCS!
+		MINIMAL USAGE: python crop_image.py [input_image] [xl yl xr yr]
+
+
+./imp/phot_calibration
+
+	./imp/phot_calibration/photometric_calibration_old.py
+		DESCRIPTION: and searches them in a catalogue.
+		# CAUTION: ugriz are in AB-system! UBVRI are Landolt (VEGA)!
+		MINIMAL USAGE: python calibration.py [input_image]
+
+
+	./imp/phot_calibration/photometric_calibration.py
+		DESCRIPTION: and searches them in a catalogue.
+		# CAUTION: ugriz are in AB-system! UBVRI are Landolt (VEGA)!
+		MINIMAL USAGE: python calibration.py [input_image]
+
+
+	./imp/phot_calibration/photometric_conversions.py
+		DESCRIPTION: Script to convert from one photometric system to the other
+
+
+	./imp/phot_calibration/find_good_psf_stars.py
+		DESCRIPTION: and searches them in a catalogue.
+		MINIMAL USAGE: python calibration.py [input_image]
+
+
+./imp/masking
+
+	./imp/masking/auto_masking.py
+		DESCRIPTION: The masked areas can be enlarged (by multiplication or subtraction).
+		MINIMAL USAGE: python auto_masking.py [input_image]
+
+
+	./imp/masking/inner_masking.py
+		DESCRIPTION: The masked areas can be enlarged (by multiplication or subtraction).
+		MINIMAL USAGE: python inner_masking.py [input_image] [psf_image]
+
+
+	./imp/masking/convert_reg_to_mask_new_old.py
+		DESCRIPTION: Pixels with counts >0 are a mask in the output mask image.
+		MINIMAL USAGE: python convert_reg_to_mask.py [input_image] [region_file]
+
+
+	./imp/masking/mask_SBlevel.py
+		DESCRIPTION: Script to mask pixels which have intensities larger or lower than SBlevel.
+		MINIMAL USAGE: python mask_SBlevel.py [input_image] [SBlevel]
+
+
+	./imp/masking/convert_reg_to_mask.py
+		DESCRIPTION: Pixels with counts >0 are a mask in the output mask image.
+		MINIMAL USAGE: python convert_reg_to_mask.py [input_image] [region_file]
+
+
+	./imp/masking/merge_masks.py
+		DESCRIPTION: Both region and fits formats are supported. Input files should be separated by comma.
+		MINIMAL USAGE: python merge_masks.py [input_masks_separated_by_comma] [output_mask]
+
+
+	./imp/masking/convert_reg_to_mask_old.py
+		DESCRIPTION: Pixels with counts >0 are a mask in the output mask image.
+		MINIMAL USAGE: python convert_reg_to_mask.py [input_image] [region_file]
+
+
+	./imp/masking/convert_segm_to_region.py
+		DESCRIPTION: Script to convert a segmentation map from Sextractor or PTS to the DS9 region file consisting of polygons.
+		MINIMAL USAGE: python convert_segm_to_region.py [segm_file] [output_region_file] 
+
+
+./imp/misc/test
+
+	./imp/misc/test/rotate_image2.py
+		DESCRIPTION: Written by Sebastien Viaene and modified by Aleksandr Mosenkov, see PTS/pts/magic/tools/rotation.py
+		MINIMAL USAGE: python rotate_image.py [input_image] [angle] [coords]
+
+
+	./imp/misc/test/rotate_image5.py
+		DESCRIPTION: Written by Sebastien Viaene and modified by Aleksandr Mosenkov, see PTS/pts/magic/tools/rotation.py
+		MINIMAL USAGE: python rebin_image.py [input_image] [angle]
+
+
+	./imp/misc/test/rotate_image3.py
+		DESCRIPTION: Written by Sebastien Viaene and modified by Aleksandr Mosenkov, see PTS/pts/magic/tools/rotation.py
+		MINIMAL USAGE: python rebin_image.py [input_image] [angle]
+
+
+	./imp/misc/test/rotate_image.py
+		DESCRIPTION: Script to rebin image to a reference image.
+		MINIMAL USAGE: python rebin_image.py [input_image] [angle]
+
+
+	./imp/misc/test/rotate_image1.py
+		DESCRIPTION: Written by Sebastien Viaene and modified by Aleksandr Mosenkov, see PTS/pts/magic/tools/rotation.py
+		MINIMAL USAGE: python rebin_image.py [input_image] [angle]
+
+
+    

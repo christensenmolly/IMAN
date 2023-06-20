@@ -1,0 +1,22 @@
+5: python ~/MEGA/MyPrograms/IMAN/Warps/fit_centerline.py ring_rotated.fits ring_centerLine.reg 49.8 42.6 -x_break_left 37 -x_break_right 60.5 -y_break_left 43 -y_break_right 41.8
+
+Results of the analysis:
+Warp radius - mean (left,right) [pix]:  11.768 (12.806,10.730)
+Warp length - mean (left,right) [pix]:  9.350 (10.076,8.623)
+Psi warp angle (left,right) [deg]:  -6.548,6.390
+Teta warp angle (left,right) [deg]:  -11.496,14.137
+Warp fraction to the total flux - mean (left,right) [pix]:  nan (nan,nan)
+z0 of the warp - mean (left,right) [pix]:  nan (nan,nan)
+Warps erros [r_warp_left_er,angle_warp_left_er,r_warp_right_er,angle_warp_right_er]:  nan 1.24	nan 1.03
+
+
+11: python ~/MEGA/MyPrograms/IMAN/Warps/fit_centerline.py ring_rotated.fits ring_centerLine.reg 87 90 -x_break_left 62.7 -x_break_right 96.5 -y_break_left 88.1 -y_break_right 88.1
+
+Results of the analysis:
+Warp radius - mean (left,right) [pix]:  17.031 (24.374,9.688)
+Warp length - mean (left,right) [pix]:  9.822 (4.024,15.620)
+Psi warp angle (left,right) [deg]:  1.384,0.990
+Teta warp angle (left,right) [deg]:  46.943,8.023
+Warp fraction to the total flux - mean (left,right) [pix]:  nan (nan,nan)
+z0 of the warp - mean (left,right) [pix]:  nan (nan,nan)
+Warps erros [r_warp_left_er,angle_warp_left_er,r_warp_right_er,angle_warp_right_er]:  nan 3.77	nan 1.06

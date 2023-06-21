@@ -10,7 +10,7 @@ from photutils.segmentation import (detect_sources,
 import numpy as np
 from astropy.convolution import convolve
 import sys
-
+import os
 LOCAL_DIR = "/imred"
 IMAN_DIR = os.path.dirname(__file__).rpartition(LOCAL_DIR)[0]
 

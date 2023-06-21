@@ -218,7 +218,7 @@ def get_reduced_science_frames(science_frames, masterbias, masterdark, masterfla
 
 def main(cals_path, science_path, science_prefix, bias_prefix='*bias*.fits', dark_prefix='*dark*.fits', flat_prefix='*flat.g*'):
     print('***DATA REDUCTION***')
-    
+
     # Bias
     bias_frames = glob.glob(cals_path + '/%s' % (bias_prefix))
     masterbias = get_master_bias(bias_frames)

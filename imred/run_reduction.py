@@ -177,9 +177,9 @@ if __name__ == '__main__':
     parser.add_argument("--cals", nargs='?', const=1, help="Provide the path to calibrations", type=str, default=None)    
     parser.add_argument("--sci", nargs='?', const=1, help="Provide the path to science frames", type=str, default=None) 
     parser.add_argument("--sci_prefix", nargs='?', const=1, help="Provide the prefix for science frames", type=str, default=None) 
-    parser.add_argument("--flats_prefix", nargs='?', const=1, help="Provide the prefix for flat fields", type=str, default=None)
-    parser.add_argument("--bias_prefix", nargs='?', const=1, help="Provide the prefix for bias frames", type=str, default=None)
-    parser.add_argument("--dark_prefix", nargs='?', const=1, help="Provide the prefix for dark frames", type=str, default=None)
+    parser.add_argument("--flats_prefix", nargs='?', const=1, help="Provide the prefix for flat fields", type=str, default='*flat.g*')
+    parser.add_argument("--bias_prefix", nargs='?', const=1, help="Provide the prefix for bias frames", type=str, default='*bias*.fits')
+    parser.add_argument("--dark_prefix", nargs='?', const=1, help="Provide the prefix for dark frames", type=str, default='*dark*.fits')
     
     args = parser.parse_args()
     

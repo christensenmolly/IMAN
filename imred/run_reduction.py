@@ -2,7 +2,7 @@
 
 import sys
 import astropy.io.fits as fits
-
+import os
 
 LOCAL_DIR = "/imred"
 IMAN_DIR = os.path.dirname(__file__).rpartition(LOCAL_DIR)[0]

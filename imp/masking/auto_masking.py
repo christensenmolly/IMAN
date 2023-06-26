@@ -58,7 +58,7 @@ def read_region(reg_file):
     f.close()
     return cen[0],cen[1],ellA,ellB,ellPA
 
-def main(input_image, output_region_file='general_mask.reg', snr=2., min_pix=5, region_type='polygon', sextr_setup=None, galaxy_ellipse=None, offset_size=1., offset_pix=0., verbosity=True):
+def main(input_image, output_region_file='general_mask.reg', snr=2., min_pix=5, region_type='polygon', sextr_setup='cold.sex', galaxy_ellipse=None, offset_size=1., offset_pix=0., verbosity=True):
     """
     Function creates a region file with polygons that cover
     all objects (the galaxy can be removed from masking if
@@ -95,7 +95,7 @@ def main(input_image, output_region_file='general_mask.reg', snr=2., min_pix=5, 
         yc = None
         PA = None
         
-    run_SExtractor.call_SE(input_image, snr=snr, min_pix=min_pix, verbosity=verbosity)
+    run_SExtractor.call_SE(input_image, sextr_setup=sextr_setup, snr=snr, min_pix=min_pix, verbosity=verbosity)
 
     # find SE number of our galaxy (it is in the centre of the image now
     # so we can just get the intensity of the central pixel)

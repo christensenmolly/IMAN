@@ -12,6 +12,10 @@ import sys
 import os
 
 
+import platform
+opsyst = platform.system()
+
+
 
 LOCAL_DIR = "/imred"
 IMAN_DIR = os.path.dirname(__file__).rpartition(LOCAL_DIR)[0]
@@ -76,11 +80,14 @@ def main(input_image, output_image, sigma=3.0, box_size=50, filter_size=3, polyn
     auto_masking.main(input_image, output_region_file='general_mask.reg', snr=2., min_pix=5, region_type='polygon', sextr_setup=None, galaxy_ellipse=None, offset_size=1.5, offset_pix=0., verbosity=True)
 
         
-
-    ds9Proc = subprocess.Popen(["ds9", input_image,
-                                            "-regions", 'general_mask.reg',
-                                            "-scale", "histequ"])
-    ds9Proc.wait() 
+    if opsyst=='Linux':
+        ds9Proc = subprocess.Popen(["ds9", input_image,
+                                                "-regions", 'general_mask.reg',
+                                                "-scale", "histequ"])
+        ds9Proc.wait()
+    elif opsyst=='Darwin':
+        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",input_image,"-regions", 'general_mask.reg',"-scale", "histequ"])
+        
     
     convert_reg_to_mask.mask(input_image, 'general_mask.reg', output_image=None, output_mask='mask.fits', mask_value=1, mask_DN=None, verbosity=True)
     
@@ -106,11 +113,12 @@ def main(input_image, output_image, sigma=3.0, box_size=50, filter_size=3, polyn
     determine_sky.sky_subtraction(input_image, 'final_mask.fits', polynomial_degree=polynomial_degree, output_image='sky_subtr.fits', output_sky=None, hdu_inp=0, sampling_factor=1., sigma_smooth=3, verbosity=True, sky_value='mode')
 
 
-
-    ds9Proc = subprocess.Popen(["ds9", 'sky_subtr.fits',
-                                        "-scale", "histequ"])
-    ds9Proc.wait() 
-
+    if opsyst=='Linux':
+        ds9Proc = subprocess.Popen(["ds9", 'sky_subtr.fits',
+                                            "-scale", "histequ"])
+        ds9Proc.wait() 
+    elif opsyst=='Darwin':
+        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",'sky_subtr.fits',"-scale", "histequ"])
 
     spline_bkg_subtr.main('sky_subtr.fits', 'final_mask.fits', output_image, sigma=sigma, box_size=box_size, filter_size=filter_size)
     

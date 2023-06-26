@@ -29,6 +29,9 @@ import backg_subtr
 import crop_image
 import subprocess
 
+import platform
+opsyst = platform.system()
+
 def convert_segm_to_boolean(mask):
     return np.ma.make_mask(mask, shrink=False)
 
@@ -70,6 +73,9 @@ def main(input_image, input_mask, output_image=None, sigma=3.0, box_size=50, fil
         
     outHDU.writeto(output_image, overwrite=True)
     
-    ds9Proc = subprocess.Popen(["ds9", output_image,
-                                        "-scale", "histequ"])
-    ds9Proc.wait() 
+    if opsyst=='Linux':
+        ds9Proc = subprocess.Popen(["ds9", output_image,
+                                            "-scale", "histequ"])
+        ds9Proc.wait() 
+    elif opsyst=='Darwin':
+        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",output_image,"-scale", "histequ"])

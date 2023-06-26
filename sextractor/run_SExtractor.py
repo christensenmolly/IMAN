@@ -84,7 +84,8 @@ def call_SE(input_image, snr=None, min_pix=None, sextr_dir=None, sextr_setup='co
 
     if sextr_add_string is not None:
         callString += sextr_add_string
-        
+    #print(callString)
+    #exit()
     subprocess.call(callString, shell=True)
     if verbosity: print('Done!')
     if determine_sky:

@@ -86,8 +86,11 @@ def main(input_image, output_image, sigma=3.0, box_size=50, filter_size=3, polyn
                                                 "-scale", "histequ"])
         ds9Proc.wait()
     elif opsyst=='Darwin':
-        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",input_image,"-regions", 'general_mask.reg',"-scale", "histequ"])
-        
+        #subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",input_image,"-regions", 'general_mask.reg',"-scale", "histequ"])
+        ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", input_image,
+                                                "-regions", 'general_mask.reg',
+                                                "-scale", "histequ"])
+        ds9Proc.wait()
     
     convert_reg_to_mask.mask(input_image, 'general_mask.reg', output_image=None, output_mask='mask.fits', mask_value=1, mask_DN=None, verbosity=True)
     
@@ -118,7 +121,9 @@ def main(input_image, output_image, sigma=3.0, box_size=50, filter_size=3, polyn
                                             "-scale", "histequ"])
         ds9Proc.wait() 
     elif opsyst=='Darwin':
-        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",'sky_subtr.fits',"-scale", "histequ"])
+        ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", 'sky_subtr.fits',
+                                            "-scale", "histequ"])
+        ds9Proc.wait()
 
     spline_bkg_subtr.main('sky_subtr.fits', 'final_mask.fits', output_image, sigma=sigma, box_size=box_size, filter_size=filter_size)
     

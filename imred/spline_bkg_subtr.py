@@ -78,4 +78,7 @@ def main(input_image, input_mask, output_image=None, sigma=3.0, box_size=50, fil
                                             "-scale", "histequ"])
         ds9Proc.wait() 
     elif opsyst=='Darwin':
-        subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",output_image,"-scale", "histequ"])
+        #subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",output_image,"-scale", "histequ"])
+        ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", output_image,
+                                            "-scale", "histequ"])
+        ds9Proc.wait()

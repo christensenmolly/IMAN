@@ -39,7 +39,7 @@ satlevel = 65536.
 tmp_out = sys.stdout
 FNULL = open(os.devnull, 'w')
 
-solve_field_path = '/media/mosav/MY_DATA_DRIVE/astrometrynet/bin/'
+solve_field_path = '/media/mosav/MY_DATA_DRIVE/astrometrynet/bin/' ####### REPLACE
 
 
 def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_prefix=None, dark_prefix=None, flat_prefix=None, input_images=None):
@@ -131,8 +131,10 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
 
         for input_image in input_images:
             # Find pixelscale
-            
-            subprocess.call("%ssolve-field %s --scale-units arcsecperpix --scale-low 0.22 --scale-high 0.23" % (solve_field_path, input_image), shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+            pixel_scale,note = rebin_image.resolution(input_image)
+            pixel_scale = float(pixel_scale)
+
+            subprocess.call("%ssolve-field %s --scale-units arcsecperpix --scale-low %.3f --scale-high %.3f" % (solve_field_path, input_image,pixel_scale*0.8,pixel_scale*1.2), shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
             for ext in ['.xyls','.axy','.corr','.match','.rdls','.solved','.wcs','-objs.png']:
                 file = glob.glob('*%s' % (ext))[0]
                 os.remove(file)

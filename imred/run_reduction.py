@@ -121,7 +121,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
 
             
     if 5 in steps:
-        input_images = glob.glob('*_reduced_crop_rayremoved_skysub.fits')
+        input_images = glob.glob('*_astro.fits')
         do_image = str(input('\n Do you want to process %s? (yes):' % (",".join(str(x) for x in input_images))) or 'yes')
         
         if do_image!='yes':

@@ -24,6 +24,8 @@ import photutil_bkg
 import glob
 import numpy as np
 import argparse
+import subprocess
+import shutil
 
 ### CCD and IMAGE PARAMETERS:
 fwhm = 1.0 # in arcsec
@@ -34,7 +36,10 @@ x_r=2048
 y_r=2048
 satlevel = 65536.
 
+tmp_out = sys.stdout
+FNULL = open(os.devnull, 'w')
 
+solve_field_path = '/media/mosav/MY_DATA_DRIVE/astrometrynet/bin/'
 
 
 def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_prefix=None, dark_prefix=None, flat_prefix=None, input_images=None):
@@ -119,8 +124,23 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
                 
                 happy = str(input('\n Are you happy with this? (yes):') or 'yes')
 
-            
+
     if 5 in steps:
+        input_images = glob.glob('*_skysub.fits')
+        # Fixing astrometry
+
+        for input_image in input_images:
+            # Find pixelscale
+            
+            subprocess.call("%ssolve-field %s --scale-units arcsecperpix --scale-low 0.22 --scale-high 0.23" % (solve_field_path, input_image), shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+            for ext in ['.xyls','.axy','.corr','.match','.rdls','.solved','.wcs','-objs.png']:
+                file = glob.glob('*%s' % (ext))[0]
+                os.remove(file)
+            file = glob.glob('*.new')[0]
+            shutil.move(file, input_image.split('_reduced')[0] + '_astro.fits')
+            
+            
+    if 6 in steps:
         input_images = glob.glob('*_astro.fits')
         do_image = str(input('\n Do you want to process %s? (yes):' % (",".join(str(x) for x in input_images))) or 'yes')
         
@@ -171,7 +191,8 @@ if __name__ == '__main__':
     print("Step 2: Automated cropping of the galaxy image [x_l, y_l: x_r, y_r] to remove a frame with bad pixels.")
     print("Step 3: Automated removement of cosmic rays.")
     print("Step 4: Sky subtraction - under human supervision.")
-    print("Step 5: Median stacking.")
+    print("Step 5: Fixing astrometry")
+    print("Step 6: Median stacking.")
     parser = argparse.ArgumentParser(description="Photometric Data Reduction:")
     parser.add_argument("--steps", nargs='?', const=1, help="Specify steps separated by comma", type=str, default='1,2,3,4,5')
     parser.add_argument("--cals", nargs='?', const=1, help="Provide the path to calibrations", type=str, default=None)    

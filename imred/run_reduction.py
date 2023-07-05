@@ -3,6 +3,7 @@
 import sys
 import astropy.io.fits as fits
 import os
+import scipy
 
 LOCAL_DIR = "/imred"
 IMAN_DIR = os.path.dirname(__file__).rpartition(LOCAL_DIR)[0]
@@ -11,6 +12,7 @@ sys.path.append(os.path.join(IMAN_DIR, 'imp/rebinning'))
 sys.path.append(os.path.join(IMAN_DIR, 'imp/sky_fitting'))
 sys.path.append(os.path.join(IMAN_DIR, 'imp/masking'))
 sys.path.append(os.path.join(IMAN_DIR, 'imp/cropping'))
+sys.path.append(os.path.join(IMAN_DIR, 'plotting/2dprofile'))
 
 import photometric_calibration
 import remove_cosmic_rays
@@ -26,6 +28,9 @@ import numpy as np
 import argparse
 import subprocess
 import shutil
+import ccdproc
+import test_for_deepness
+import plot_smoothed_image
 
 ### CCD and IMAGE PARAMETERS:
 fwhm = 1.0 # in arcsec
@@ -162,9 +167,10 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
             print('The reference image is %s' % (input_images[reference_index]))
             
             imgs = []
+            rebin_images = []
             for k in range(len(input_images)):
                 rebin_image.rebin(input_images[reference_index], input_images[k], output_image=input_images[k].split('/')[-1].split('.fits')[0]+'_rebin.fits', hdu_ref=0, hdu_inp=0, preserve_bad_pixels=True, no_interp=False)
-
+                rebin_images.append(input_images[k].split('/')[-1].split('.fits')[0]+'_rebin.fits')
                 hdulist = fits.open(input_images[k].split('/')[-1].split('.fits')[0]+'_rebin.fits')
                 imgs.append(hdulist[0].data)
                 if k==0:
@@ -173,17 +179,62 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
             
             
         do_median = str(input('\n Do you want to median these images? (yes):') or 'yes')
-        
+        '''
         if do_median=='yes':
             final_science = np.median(imgs, axis = 0)
-        else:
+        elif do_median=='mean':
             final_science = np.mean(imgs, axis = 0)
+        elif do_median=='mean_clip':    
+            scipy.stats.sigmaclip(imgs, low=3.0, high=3.0)
             
         outHDU = fits.PrimaryHDU(final_science, header=header)
             
-        outHDU.writeto('final_image.fits', overwrite=True)        
+        outHDU.writeto('final_image.fits', overwrite=True)
+        '''
+        
+        ccdproc.combine(rebin_images, output_file='final_image.fits', method='average', weights=None, scale=None, mem_limit=16000000000.0, clip_extrema=False, nlow=1, nhigh=1, minmax_clip=False, minmax_clip_min=None, minmax_clip_max=None, sigma_clip=True, sigma_clip_low_thresh=3, sigma_clip_high_thresh=3, dtype=None, combine_uncertainty_function=None, overwrite_output=True, unit='adu')
 
+    if 9 in steps:
+        # Photometric calibration
+        zz=1
+    
+    
+    if 8 in steps:
+        # Get statistics of the image
+        
+        pixelscale,note = rebin_image.resolution('final_image.fits')
+        hdulist = fits.open('final_image.fits')
+        header = hdulist[0].header 
+        m0 = float(header['m0'])
+        
+        auto_masking.main('final_image.fits', output_region_file='final_mask.reg', snr=2., min_pix=5, region_type='polygon', sextr_setup=None, galaxy_ellipse=None, offset_size=1.5, offset_pix=0., verbosity=True)
 
+        if opsyst=='Linux':
+            ds9Proc = subprocess.Popen(["ds9", 'final_image.fits',
+                                                    "-regions", 'final_mask.reg',
+                                                    "-scale", "histequ"])
+            ds9Proc.wait()
+        elif opsyst=='Darwin':
+            #subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",input_image,"-regions", 'general_mask.reg',"-scale", "histequ"])
+            ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", 'final_image.fits',
+                                                    "-regions", 'final_mask.reg',
+                                                    "-scale", "histequ"])
+            ds9Proc.wait()
+        
+        convert_reg_to_mask.mask('final_image.fits', 'final_mask.reg', output_image=None, output_mask='final_mask.fits', mask_value=1, mask_DN=None, verbosity=True)
+        
+        test_for_deepness.sky_in_boxes('final_image.fits', m0, float(pixelscale), mask_image='final_mask.fits', box_size_arcsec=10., Nboxes=1000, n_sigma=3, units='mag', upper=False, verbosity=True)
+ 
+    if 9 in steps:
+        # Creating enhanced image 
+        pixelscale,note = rebin_image.resolution('final_image.fits')
+        hdulist = fits.open('final_image.fits')
+        header = hdulist[0].header 
+        m0 = float(header['m0'])
+        
+        galaxy_name = str(input('\n Enter galaxy name:') or '')
+        png_image = plot_smoothed_image.main('final_image.fits', 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False')
+        
 
 
 
@@ -193,8 +244,9 @@ if __name__ == '__main__':
     print("Step 2: Automated cropping of the galaxy image [x_l, y_l: x_r, y_r] to remove a frame with bad pixels.")
     print("Step 3: Automated removement of cosmic rays.")
     print("Step 4: Sky subtraction - under human supervision.")
-    print("Step 5: Fixing astrometry")
+    print("Step 5: Fixing astrometry.")
     print("Step 6: Median stacking.")
+    print("Step 7: .")
     parser = argparse.ArgumentParser(description="Photometric Data Reduction:")
     parser.add_argument("--steps", nargs='?', const=1, help="Specify steps separated by comma", type=str, default='1,2,3,4,5')
     parser.add_argument("--cals", nargs='?', const=1, help="Provide the path to calibrations", type=str, default=None)    

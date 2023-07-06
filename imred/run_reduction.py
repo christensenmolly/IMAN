@@ -194,7 +194,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         
         ccdproc.combine(rebin_images, output_file='final_image.fits', method='average', weights=None, scale=None, mem_limit=16000000000.0, clip_extrema=False, nlow=1, nhigh=1, minmax_clip=False, minmax_clip_min=None, minmax_clip_max=None, sigma_clip=True, sigma_clip_low_thresh=3, sigma_clip_high_thresh=3, dtype=None, combine_uncertainty_function=None, overwrite_output=True, unit='adu')
 
-    if 9 in steps:
+    if 7 in steps:
         # Photometric calibration
         zz=1
     

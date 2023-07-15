@@ -127,12 +127,14 @@ def resize_deep_images(deep_image, output_image, R=0., PA=0., resolution=600, br
     
 
 
-def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./legacy',L_bar=30.):
+def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./legacy',L_bar=30., output_file=None):
     # R in arcmin
     
+    if output_file is None:
+        output_file = '%s.png' % (name)
+
     try:
            RR = int(math.ceil(R*60./pixscale))
-           output_file = '%s.png' % (name)
            url="http://legacysurvey.org/viewer/jpeg-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=dr8&pixscale=%.3f&bands=grz" % (RA, DEC, 2*RR, 2*RR, pixscale) 
            urllib.request.urlretrieve(url, 'tmp_%s.jpg' % (name))
 

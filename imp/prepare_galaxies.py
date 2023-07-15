@@ -1402,7 +1402,7 @@ def main(number, sample_file, verbosity=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Image preparation: pipeline")
-    parser.add_argument("input_sample", help="tsv file with a sample")    
+    parser.add_argument("input_sample", help="tsv file with a sample")
     parser.add_argument("sample_number", help="Item number to be done, starting from 1", type=int)
     parser.add_argument("-v", "--v", action="store_true", help="Optional: Verbosity", default=False) 
     args = parser.parse_args()

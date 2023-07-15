@@ -10,13 +10,13 @@
 # http://astro.corlan.net/gcx/html/node7.html
 # https://faculty.virginia.edu/ASTR5110/lectures/detectors/detectors_red.html !!! Good description of the data reduction
 # EXAMPLE: python3 plan_observations.py Filaments_for_observations.dat --d=' '
-# EXAMPLE: python3 ~/MyGit/IMAN/misc_funcs/plan_observations.py stripe82_prg_cands.dat --d=' ' --v
+# EXAMPLE: python3 ~/MyGit/IMAN/misc_funcs/plan_observations.py stripe82_prg_cands.dat 2023-07-15 01:00:00 2023-07-15 05:40:00 --d=' ' --s desi
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import EarthLocation
 from astropy.coordinates import AltAz
-from astropy.coordinates import ICRS
+from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy.time import Time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,13 +38,18 @@ import pytz
 import time
 import os
 import sys
+import shutil
 
 LOCAL_DIR = "/misc_funcs"
 IMAN_DIR = os.path.dirname(__file__).rpartition(LOCAL_DIR)[0]
 
 
 sys.path.append(os.path.join(IMAN_DIR, 'detect_objects'))
+sys.path.append(os.path.join(IMAN_DIR, 'misc_funcs'))
 
+import download_sdss_jpg
+import download_panstarrs_jpg
+import download_legacy_jpg_new
 import read_data
 import get_galaxy_center_ned
 
@@ -128,7 +133,7 @@ def read_targets(input_file, delimiter=',', header_line=0, units_line=None, skip
             coords = get_galaxy_center_ned.get_coords_by_name(name)
             ra.append(coords[0])
             dec.append(coords[1])
-        targets = SkyCoord(ra, dec, frame="icrs", unit="deg")
+        targets = SkyCoord(ra, dec, frame=FK5, unit="deg")
 
         return targets,names
 
@@ -140,10 +145,10 @@ def read_targets(input_file, delimiter=',', header_line=0, units_line=None, skip
         if ':' in str(target_list['ra'][0]):
             targets = SkyCoord(target_list['ra'], target_list['dec'], unit=(u.hourangle, u.deg))
         elif 'h' in str(target_list['ra'][0]):
-            targets = SkyCoord(target_list['ra'], target_list['dec'], frame="icrs")
+            targets = SkyCoord(target_list['ra'], target_list['dec'], frame=FK5)
         else:
-            targets = SkyCoord(target_list['ra'], target_list['dec'], frame="icrs", unit="deg")
-        
+            targets = SkyCoord(target_list['ra'], target_list['dec'], frame=FK5, unit="deg")
+
     except:
         dtype = []
         dtype.append( ('name', 'U18') )
@@ -152,7 +157,9 @@ def read_targets(input_file, delimiter=',', header_line=0, units_line=None, skip
         dtype.append( ('epoch', 'U18') )
         target_list = np.genfromtxt(input_file, dtype=dtype)
 
-        targets = SkyCoord(target_list['ra'], target_list['dec'], unit='hour, deg')
+
+
+        targets = SkyCoord(target_list['ra'], target_list['dec'], frame=FK5, unit='hour, deg')
     return targets,target_list['name']
 
 
@@ -160,7 +167,7 @@ def read_targets(input_file, delimiter=',', header_line=0, units_line=None, skip
 
 
 
-def main(targets, names, local_time_start='2023-05-17 00:05:00', local_time_end='2023-05-17 01:04:00', lon=-105.819644, lat=32.780359, elevation=2788., observatory='APO', bad_if_airmass_is_larger=2.0, pressure_bar=1.0, temperature_C=0.0, verbosity=False, plot_visibility=False):
+def main(table, targets, names, local_time_start='2023-05-17 00:05:00', local_time_end='2023-05-17 01:04:00', lon=-105.819644, lat=32.780359, elevation=2788., observatory='APO', bad_if_airmass_is_larger=2.0, pressure_bar=1.0, temperature_C=0.0, verbosity=False, plot_visibility=False, survey=None):
 
     Time_zone = get_time_zone(local_time_start, lat, lon) # This includes saving daytime hour!!!
 
@@ -203,13 +210,13 @@ def main(targets, names, local_time_start='2023-05-17 00:05:00', local_time_end=
         print('\tApproximate range for dark time (after evening twilight and before morning twilight) Local time: %s --- %s' % (Time(sunset_tonight.iso, format='iso', scale='utc', location=location) + TimeDelta(3600.0*1.5, format='sec') + dt, Time(sunrise_tonight.iso, format='iso', scale='utc', location=location) - TimeDelta(3600.0*1.5, format='sec') + dt))
 
 
-    print('\n================================================================================================')
+    print('\n======================================================================================================')
     print('Night %s - %s: OBJECTS WITH AIRMASS<%.2f' % (local_time_start, local_time_end, bad_if_airmass_is_larger))
     print('SUN set-rise: %s - %s' % (Time(sunset_tonight.iso, format='iso', scale='utc', location=location) + dt, Time(sunrise_tonight.iso, format='iso', scale='utc', location=location) + dt))
     print('MOON rise-set: %s - %s' % (Time(moon_rise.iso, format='iso', scale='utc', location=location) + dt, Time(moon_set.iso, format='iso', scale='utc', location=location) + dt))
-    print('------------------------------------------------------------------------------------------------')
-    print('%s | %s| %s|%s| %s |%s' % ('Object'.ljust(20), 'OBS_start'.ljust(24), 'OBS_end'.ljust(24), 'H_start'.ljust(7), 'H_end'.ljust(5), 'MOON_IL'.ljust(7) ))
-    print('------------------------------------------------------------------------------------------------')
+    print('------------------------------------------------------------------------------------------------------')
+    print('%s | %s | %s| %s|%s| %s |%s' % ('Ind'.ljust(3),'Object'.ljust(20), 'OBS_start'.ljust(24), 'OBS_end'.ljust(24), 'H_start'.ljust(7), 'H_end'.ljust(5), 'MOON_IL'.ljust(7) ))
+    print('------------------------------------------------------------------------------------------------------')
 
     
     if plot_visibility:
@@ -224,6 +231,7 @@ def main(targets, names, local_time_start='2023-05-17 00:05:00', local_time_end=
     #print("\n\tObjects which have airmass<%.1f over the observational period:" % (bad_if_airmass_is_larger))
     observe_time = np.arange(t_start,t_end,TimeDelta(60., format='sec')) # step = 1 minute
 
+    sel_targets = []
     for i in range(len(targets)):
         target = targets[i]
         #delta_t = t_end - t_start
@@ -282,29 +290,79 @@ def main(targets, names, local_time_start='2023-05-17 00:05:00', local_time_end=
             else:
                 moon_illumination = 0.0
             
-            print('%s | %s | %s | %.2f | %.2f | %.2f ' % (str(names[i]).ljust(20), Time(np.min(ttime), format='iso', scale='utc', location=location) + dt, Time(np.max(ttime), format='iso', scale='utc', location=location) + dt, alt[inds[0]], alt[inds[-1]], moon_illumination))
+            print('%s | %s | %s | %s | %.2f | %.2f | %.2f ' % (str(i).ljust(3), str(names[i]).ljust(20), Time(np.min(ttime), format='iso', scale='utc', location=location) + dt, Time(np.max(ttime), format='iso', scale='utc', location=location) + dt, alt[inds[0]], alt[inds[-1]], moon_illumination))
+            sel_targets.append(i)
             
             
-    print('================================================================================================')
+    print('======================================================================================================')
+
+    if survey is not None:
+        downl_targets = input('\n Select indices for which you want to download %s jpgs?' % (survey))
+
+        width = 1.0
+        width = float(input('\n Enter the angular width (in arcmin) of your output pictures (default: %.1f arcmin)?' % (width)) or width)
+
+        if downl_targets=='':
+            downl_targets = sel_targets
+        else:
+            downl_targets = list(map(int, downl_targets.split(',')))
+
+
+        #print(downl_targets)
+        #exit()
+        #print(float(target.ra.deg))
+        #exit()
+
+        #os.mkdir('pics_%s' % (table.split('.')[0]))
+        #
+
+        if os.path.exists('pics_%s' % (table.split('.')[0])):
+            shutil.rmtree('pics_%s' % (table.split('.')[0]))
+        os.makedirs('pics_%s' % (table.split('.')[0]))
+        os.chdir('pics_%s' % (table.split('.')[0]))
+        #exit()
+        for ii in downl_targets:
+            #print(ii)
+            #exit()
+            if survey.lower()=='sdss':
+                download_sdss_jpg.download_sdss(float(targets[ii].ra.deg), float(targets[ii].dec.deg), width=width, output_file='%i_%s.jpg' % (ii,names[ii]), add_bar=True, text=None)
+            elif survey.lower()=='panstarrs':
+                download_panstarrs_jpg.download_panstarrs(float(targets[ii].ra.deg), float(targets[ii].dec.deg), width=width, output_file='%i_%s.jpg' % (ii,names[ii]))
+            elif survey.lower()=='desi':
+                download_legacy_jpg_new.main(ii, names[ii], float(targets[ii].ra.deg), float(targets[ii].dec.deg), width/2.0, 0.0, None, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./',L_bar=30., output_file='%i_%s.png' % (ii,names[ii]))
+        os.chdir('..')
  
 
+
+# local_time_start='2023-05-17 00:05:00', local_time_end='2023-05-17 01:04:00'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Plan Observations") 
     parser.add_argument("table", help="Input table with targets", type=str)
     
+    parser.add_argument("start_date", help="Start date in the format yyyy-mm-dd, e.g. 2023-05-17")
+    parser.add_argument("start_time", help="Start time in the format hh-mm-ss, e.g. 00:05:00")
+    parser.add_argument("end_date", help="End date in the format hh-mm-ss, e.g. 01:04:00")
+    parser.add_argument("end_time", help="End time")
     parser.add_argument("--d", help="Optional: delimiter", type=str, default=' ')
     parser.add_argument("--h", help="Optional: header line with the names of the columns", type=int, default=0) 
-    parser.add_argument("--v", help="Optional: Plot visibility", default=False, action="store_true")
+    parser.add_argument("--v", help="Optional: plot visibility", default=False, action="store_true")
+    parser.add_argument("--s", help="Optional: survey from which you would like to get a pciture of this object [SDSS, PanSTARRS, DESI]", type=str, default=None)
 
     args = parser.parse_args()
     
     table = args.table
+    start_date = args.start_date
+    start_time = args.start_time
+    end_date = args.end_date
+    end_time = args.end_time
+
     delimiter = args.d
     header_line = args.h
     visibility = args.v
+    survey = args.s
     
     targets, names = read_targets(table, delimiter=delimiter, header_line=header_line, units_line=None, skip_lines = [], comment='#')
-    main(targets, names, plot_visibility=visibility)
+    main(table, targets, names, local_time_start='%s %s' % (start_date,start_time), local_time_end='%s %s' % (end_date,end_time), plot_visibility=visibility, survey=survey)
 
 '''
 #targets,names = read_targets('apo1.lst')

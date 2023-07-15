@@ -16,10 +16,12 @@ import shutil
 import glob
 import argparse
 FNULL = open(os.devnull, 'w')
-
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def download_panstarrs(RA, DEC, width=None, output_file=None):
+    print('Downloading ra=%.6f, dec=%.6f' % (RA,DEC))
     if output_file is not None:
         file = output_file.split('/')[-1]
         output_folder = output_file.split(file)[0]
@@ -44,7 +46,7 @@ def download_panstarrs(RA, DEC, width=None, output_file=None):
         return 1
     if output_file is not None:
         shutil.move(file, output_file)
-    print('Done!')
+    #print('Done!')
     return 0
 
 if __name__ == "__main__":

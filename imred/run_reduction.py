@@ -32,6 +32,12 @@ import ccdproc
 import test_for_deepness
 import plot_smoothed_image
 
+from pathlib import Path # added
+import phot_reduction # added
+
+import platform
+opsyst = platform.system()
+
 ### CCD and IMAGE PARAMETERS:
 fwhm = 1.0 # in arcsec
 polynomial_degree = 1
@@ -195,8 +201,31 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         ccdproc.combine(rebin_images, output_file='final_image.fits', method='average', weights=None, scale=None, mem_limit=16000000000.0, clip_extrema=False, nlow=1, nhigh=1, minmax_clip=False, minmax_clip_min=None, minmax_clip_max=None, sigma_clip=True, sigma_clip_low_thresh=3, sigma_clip_high_thresh=3, dtype=None, combine_uncertainty_function=None, overwrite_output=True, unit='adu')
 
     if 7 in steps:
-        # Photometric calibration
-        zz=1
+        # Photometric calibration without color correction
+        # This part was added by Andrey Panasyuk
+
+        fnames  = [Path(str(input('Enter an image for photometric calibration. \n')))] #[Path('final_image.fits')]
+        catalog = str(input('Enter the catalog of standard stars. Currently available: SDSS, NOMAD, PS1. Default: SDSS. \n') or 'SDSS')
+        filt    = input('Enter the image band (e.g. one of ugriz).\n')
+        filt    = filt*3
+
+        lm      = float(input('Enter the lower star magnitude.\n'))
+        um      = float(input('Enter the upper star magnitude.\n'))
+        fwhm    = float(input('Enter the approx FWHM (pix).\n'))
+
+        bdr     = 20
+        k0      = 2.0
+        k1      = 2.5
+        k2      = 3.0
+
+        man     = str(input('Do you want to use the manual mode? (Y/n)\n') or 'y')
+        man = man == 'y'
+
+        out_file = 'final_image_corr.fits'
+
+        phot_reduction.main(fnames, bdr, low_mag=lm, up_mag=um, fwhm=fwhm, k0=k0, k1=k1, k2=k2, catalog=catalog, manual=man, filters=filt, out_file=out_file, show=False)
+
+
     
     
     if 8 in steps:

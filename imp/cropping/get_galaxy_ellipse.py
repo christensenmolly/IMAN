@@ -78,7 +78,7 @@ def create_ellipse_region(input_image, xc, yc, sma, smb, PA, file, coord_format=
 def convert_segm_to_boolean(mask):
     return np.ma.make_mask(mask)
 
-def main(input_image, segm_image, I_lim, output_region='galaxy_ellipse.reg', xc=None, yc=None, min_radius=10., verbosity=True, method='iso', filter_size=10., use_input_coords=False, radius_factor=1.):
+def main(input_image, segm_image, I_lim=None, output_region='galaxy_ellipse.reg', xc=None, yc=None, min_radius=10., verbosity=True, method='iso', filter_size=10., use_input_coords=False, radius_factor=1.):
     '''
     Function to determine the ellipse which fits the outermost galaxy isophote at signal-to-noise ratio equal snr.
     The galaxy has a center of xc, yc. If they are None, then the center of the image is taken as the galaxy center.

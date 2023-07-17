@@ -3,6 +3,35 @@ from useful_functions import *
 from scipy.optimize import curve_fit
 from sklearn.linear_model import RANSACRegressor, HuberRegressor
 import warnings
+from scipy import odr
+import stats
+
+def lin(B, x):
+    return x + B[0]
+
+def fit(x, y, n=1):
+    
+    data = odr.Data(x, y)
+    results0 = odr.ODR(data=data, model=odr.Model(lin), beta0=[33.0]).run()
+    results = results0
+    for _ in range(n):
+        y_sigma = np.sqrt(np.abs((y - lin(results.beta, x))))
+        results = odr.ODR(data=odr.RealData(x=x, y=y, sy=y_sigma),
+                              model=odr.Model(lin),
+                              beta0=results.beta).run()
+    return results.beta, results0.sd_beta
+
+
+def clean(inst, calib):
+    data = calib - inst
+
+    Q1 = np.quantile(data, q=.25)
+    Q3 = np.quantile(data, q=.75)
+    IQR = Q3 - Q1#data.apply(stats.iqr)
+
+    inds = np.where(~((data < (Q1-1.5*IQR)) | (data > (Q3+1.5*IQR))))
+
+    return inst[inds], calib[inds]
 
 def move_phot_sys(fnameB, fnameV, fnameR, pb0, pb1, pb2, out_dir):
 
@@ -137,11 +166,11 @@ def get_equals(cat_B, cat_V, cat_R, est_B, est_V, est_R, fnameB, fnameV, fnameR,
     #    plt.plot(eb, cb, 'ob')
     plt.plot([a,b], [a*s1+i1, b*s1+i1], '-r' , label=r'$c_1 = %5.3f \pm %5.3f$ $c_{bv} = %5.3f \pm %5.3f$' %(s1, s_err, i1, i_err))
     plt.xlabel('(' + filters[0] + '-' + filters[1] + ') catalog', fontsize=15)
-    plt.ylabel('('+filters[0] +' - '+ filters[1]+') instrumental', fontsize=15)
+    plt.ylabel('('+filters[0] +' - '+ filters[1]+') inst', fontsize=15)
     #plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.legend(fontsize=15)
     plt.gca().invert_yaxis()
-    plt.gca().invert_xaxis()
+    #plt.gca().invert_xaxis()
     plt.tight_layout()
     plt.savefig(Path(out_dir, gal+'%s%s.png' %(filters[0], filters[1])))
     plt.clf()
@@ -169,7 +198,7 @@ def get_equals(cat_B, cat_V, cat_R, est_B, est_V, est_R, fnameB, fnameV, fnameR,
     #for eb, cb, k in zip(VR, vr, inds0):
     #    plt.plot(eb, cb, 'ob') #, label='%s %s %s' %(k, np.round(eb,2), np.round(cb,2)))
     plt.plot([a,b], [a*s2+i2, b*s2+i2], '-r', label=r'$c_2 = %5.3f \pm %5.3f$ $c_{vr} = %5.3f \pm %5.3f$' %(s2, s_err, i2, i_err))
-    plt.ylabel('('+filters[1] +' - '+ filters[2]+') instrumental', fontsize=15)
+    plt.ylabel('('+filters[1] +' - '+ filters[2]+') inst', fontsize=15)
     plt.xlabel('(' + filters[1] + '-' + filters[2] + ') catalog', fontsize=15)
     #plt.xlabel(filters[1]+' - '+filters[2])
     #plt.ylabel('v-r')
@@ -218,7 +247,7 @@ def get_equals(cat_B, cat_V, cat_R, est_B, est_V, est_R, fnameB, fnameV, fnameR,
     #    plt.plot(eb, cb, 'ob')#, label='%s %s %s' %(k, np.round(eb,2), np.round(cb,2)))
     plt.plot(_BV, _BV*s0 + i0, '-r', label=r'$c_0 = %5.3f \pm %5.3f$ $c_v = %5.3f \pm %5.3f$' %(s0, s_err, i0, i_err))
     plt.xlabel('(' + filters[0] + '-' + filters[1]+ ') catalog', fontsize=15)
-    plt.ylabel(filters[1]+ ' catalog' +' - ' +  filters[1] + ' instrumental', fontsize=15)
+    plt.ylabel(filters[1]+ ' catalog' +' - ' +  filters[1] + ' inst', fontsize=15)
     plt.legend(fontsize=15)
     #plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     
@@ -239,96 +268,76 @@ def get_equals(cat_B, cat_V, cat_R, est_B, est_V, est_R, fnameB, fnameV, fnameR,
 #----------------------------------------------------------------------------------------------------------------------------------------
 
 
-def get_equals_solo(cat_B, est_B, fnameB, filt, out_dir, inds0, out_file):
-    #print(filt)
+def get_equals_solo(m_calib, m_inst, fname, filt, out_dir, inds0, out_file):
 
-    gal = fnameB.stem #fnameB.split('/')[-1].split('-')[0]
-    #plot_sky(ima, 0.1, 0.1, xy=list(zip(xB, yB)), xy1=list(zip(xV, yV)), xy2=list(zip(xR, yR)))
-    #plt.savefig(gal+'.png')
+    gal = fname.stem 
    
-    inds = np.where(~np.isnan(est_B))
-    est_B = est_B[inds] 
-    cat_B = cat_B[inds]
-    
-    
-    def lin(x, *p):
-        return p[0]*x + p[1]
+    inds = np.where(~np.isnan(m_inst))
+    m_calib = m_calib[inds]
+    m_inst = m_inst[inds]
 
-    #def lin0(x, *p):
-    #    return x + p[0]
+    m_inst0, m_calib0 = clean(m_inst, m_calib)
     
-    #def lin00(x, *p):
-    #    return p[0]
     
-    #inds = np.where( (-1 <VR) * (VR < 1)* (BV < 2))
-    #BV = BV[inds]
-    #bv = bv[inds]
-    #VR = VR[inds]
-    #vr = vr[inds]
-    #Vv = Vv[inds]
+    #def model(x, *p):
+    #    return x -  p[0]
+    #
+    #pb0, covpb = curve_fit(model, xdata=m_calib - m_inst, ydata=0, p0=np.array([30.0])) #, bounds=np.array([[0.6, -np.inf], [1.5,np.inf]]))
     
-    #pb10, covpb = curve_fit(lin0, xdata=est_B, ydata=cat_B, p0=np.array([ 0])) #, bounds=np.array([[0.6, -np.inf], [1.5,np.inf]]))
-    # sy = abs(est_B + pb10[0] - cat_B)
-   
-    #for _ in range(1):
-    pb0, covpb = curve_fit(lin, xdata=est_B, ydata=cat_B, p0=np.array([1,0])) #, bounds=np.array([[0.6, -np.inf], [1.5,np.inf]]))
-    #sy = abs(BV + pb1[1] - bv)
-    X = [[a] for a in est_B]
-    y = cat_B
-    #reg = RANSACRegressor().fit(X, y)
-    reg = HuberRegressor().fit(X, y)
-    s, i = reg.coef_, reg.intercept_
+
+    #X = [[a] for a in est_B]
+    #y = m_calib
+    #reg = HuberRegressor().fit(X, y)
+    #s, i = reg.coef_, reg.intercept_
         
     #s = pb0[0]
     #i = pb0[1]
-    s_err = np.sqrt(covpb[0,0])
-    i_err = np.sqrt(covpb[0,0])
+    #s_err = np.sqrt(covpb[0,0])
+    #i_err = np.sqrt(covpb[0,0])
     
-    a, b = np.min(est_B), np.max(est_B)
+    m0, m0_std = fit(m_inst0, m_calib0)
+
+    a, b = np.min(m_calib), np.max(m_calib)
+    #a, b = np.min(m_inst), np.max(m_inst)
     
     plt.figure(dpi=300, figsize=(10,10))
-    #plt.title(gal)
-    #print(len(inds0))
-    for eb, cb, k in zip(est_B, cat_B, inds0):
-        plt.plot(eb, cb, 'bo')#, label='%s %s %s' %(k, np.round(eb,2), np.round(cb,2)))
-    plt.plot([a,b], [a*s+i, b*s+i], '-r' , label=r'$c_0 = %5.3f \pm %5.3f$ $c_{v} = %5.3f \pm %5.3f$' %(s, s_err, i, i_err))
-    plt.ylabel(filt, fontsize=15)
-    plt.xlabel(filt+' instrumental', fontsize=15)
-    #plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.title(gal)
+    plt.plot(m_calib, m_calib-m_inst, 'bo', label='initial')#, label='%s %s %s' %(k, np.round(eb,2), np.round(cb,2)))
+    plt.plot(m_calib0, m_calib0-m_inst0, 'go', label='cleaned')#, label='%s %s %s' %(k, np.round(eb,2), np.round(cb,2)))
+    plt.plot([a,b], [m0, m0], '-r' , label=r'$m_0 = %5.3f \pm %5.3f$' %(m0, m0_std))
+    #plt.plot([a,b], [m0-3*m0_std, m0-3*m0_std], '--r' )
+    #plt.plot([a,b], [m0+3*m0_std, m0+3*m0_std], '--r' )
+    plt.ylabel('$'+filt+'_{calib}'+'-'+filt+'_{instr}'+'$', fontsize=15)
+    plt.xlabel('$' + filt+'_{calib}'+ '$', fontsize=15)
     plt.legend(fontsize=15)
-    #plt.xlim(0, 2)
     plt.gca().invert_yaxis()
     plt.gca().invert_xaxis()
     plt.tight_layout()
     plt.savefig(Path(out_dir, gal+'.png'))
     plt.clf()
     plt.close()
-    #plt.show()
     
-    move_phot_sys_solo(fnameB, [s, i], out_dir, out_file)
+    move_phot_sys_solo(fname, float(m0), float(m0_std), out_dir, out_file)
 #--------------------------------------------------------------------------------------------------------------------------------
 
 
-def move_phot_sys_solo(fnameB, pb0, out_dir, out_file):
+def move_phot_sys_solo(fnameB, m0, m0_std, out_dir, out_file):
 
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore')
 
         hdu = fits.open(fnameB)
-        dataB = -2.5*np.log10(hdu[0].data)
-        headerB = hdu[0].header
+        header = hdu[0].header
+        data = hdu[0].data
 
-        c0  = pb0[0]
-        cv  = pb0[1]
+        header['m0'] = m0
+        header['m0_std'] = m0_std
+        #c0  = pb0[0]
+        #cv  = pb0[1]
 
-        print('c0', c0)
-        print('cv', cv)
 
-        B = dataB*c0 + cv
+        print('m0', m0)
+        print('m0_std', m0_std)
 
-        Ib = 10**(-0.4*B)
-        Ib[np.where(np.isnan(Ib))] = 0
-
-        nameB = fnameB.name #.split('/')[-1]
-        fits.writeto(Path(out_dir, out_file), Ib, header=headerB, overwrite=True) 
+        fits.writeto(Path(out_dir, out_file), data, header=header, overwrite=True) 
     return

@@ -128,7 +128,7 @@ def main(fnames, bdr=0, low_mag=14, up_mag=17, fwhm=9.0, k0=2, k1=2.5, k2=3,
         if show:
             ufoo.save([inds, xs, ys,  Best, Bmag, Bfwhm], ['index', 'x_center', 'y_center', '%s_instrumental' %filters[0], '%s_catalog' %filters[0], 'FWHM'], out_dir) 
     
-        mps.get_equals_solo(cat_B=Bmag, est_B=Best, fnameB=fnames[0], filt=filters[0], out_dir=out_dir, inds0=inds, out_file=out_file)
+        mps.get_equals_solo(m_calib=Bmag, m_inst=Best, fname=fnames[0], filt=filters[0], out_dir=out_dir, inds0=inds, out_file=out_file)
         return
 
     else:

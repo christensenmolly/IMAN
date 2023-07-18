@@ -52,6 +52,14 @@ def main(fnames, bdr=0, low_mag=14, up_mag=17, fwhm=9.0, k0=2, k1=2.5, k2=3,
             W = WCS(header)
             xy, Bmag, Vmag, Rmag = sph.get_stars_for_phot(df, W, bdr, w, h, catalog, filters)
             print('Objects found: %i' %len(Bmag)) 
+            x_tmp = [a[0] for a in xy]
+            y_tmp = [a[1] for a in xy]
+            _, inds_tmp = ufoo.del_nearest(x_tmp, y_tmp, ap=2*k2*fwhm)
+            xy   = xy[inds_tmp]
+            Bmag = Bmag[inds_tmp]
+            Vmag = Vmag[inds_tmp]
+            Rmag = Rmag[inds_tmp]
+            print('Objects found: %i' %len(Bmag)) 
                 
             if app is None:
                 sph.create_ds9_apertures(xy, fwhm, k0, k1, k2)

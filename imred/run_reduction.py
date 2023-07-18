@@ -276,7 +276,7 @@ if __name__ == '__main__':
     print("Step 4: Sky subtraction - under human supervision.")
     print("Step 5: Fixing astrometry.")
     print("Step 6: Median stacking.")
-    print("Step 7: .")
+    print("Step 7: Photometric calibration.")
     parser = argparse.ArgumentParser(description="Photometric Data Reduction:")
     parser.add_argument("--steps", nargs='?', const=1, help="Specify steps separated by comma", type=str, default='1,2,3,4,5')
     parser.add_argument("--cals", nargs='?', const=1, help="Provide the path to calibrations", type=str, default=None)    

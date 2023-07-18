@@ -205,7 +205,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         # Photometric calibration without color correction
         # This part was added by Andrey Panasyuk
 
-        fnames  = [Path(str(input('Enter an image for photometric calibration. \n')))] #[Path('final_image.fits')]
+        fnames  = str(input('Enter an image for photometric calibration. \n')) #[Path('final_image.fits')]
         catalog = str(input('Enter the catalog of standard stars. Currently available: SDSS, NOMAD, PS1. Default: SDSS. \n') or 'SDSS')
         filt    = input('Enter the image band (e.g. one of ugriz).\n')
         filt    = filt*3
@@ -222,9 +222,9 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         man     = str(input('Do you want to use the manual mode? (Y/n)\n') or 'y')
         man = man == 'y'
 
-        out_file = 'final_image_corr.fits'
+        out_file = fnames.split('.fits')[0] + '_corr.fits'
 
-        phot_reduction.main(fnames, bdr, low_mag=lm, up_mag=um, fwhm=fwhm, k0=k0, k1=k1, k2=k2, catalog=catalog, manual=man, filters=filt, out_file=out_file, show=False)
+        phot_reduction.main([Path(fnames)], bdr, low_mag=lm, up_mag=um, fwhm=fwhm, k0=k0, k1=k1, k2=k2, catalog=catalog, manual=man, filters=filt, out_file=out_file, show=False)
 
 
     
@@ -232,8 +232,8 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
     if 8 in steps:
         # Get statistics of the image
         
-        pixelscale,note = rebin_image.resolution('final_image.fits')
-        hdulist = fits.open('final_image.fits')
+        pixelscale,note = rebin_image.resolution('final_image_corr.fits')
+        hdulist = fits.open('final_image_corr.fits')
         header = hdulist[0].header 
         m0 = float(header['m0'])
         

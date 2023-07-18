@@ -222,7 +222,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         man     = str(input('Do you want to use the manual mode? (Y/n)\n') or 'y')
         man = man == 'y'
 
-        out_file = fnames.split('.fits')[0] + '_corr.fits'
+        out_file = fnames.split('.fits')[0] + '_m0.fits'
 
         phot_reduction.main([Path(fnames)], bdr, low_mag=lm, up_mag=um, fwhm=fwhm, k0=k0, k1=k1, k2=k2, catalog=catalog, manual=man, filters=filt, out_file=out_file, show=False)
 
@@ -231,13 +231,15 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
     
     if 8 in steps:
         # Get statistics of the image
+        m0_image = glob.glob('*_m0.fits')[0]
+        fname  = str(input('Enter an image with m0 (%s). \n' % (m0_image)) or m0_image)
         
-        pixelscale,note = rebin_image.resolution('final_image_corr.fits')
-        hdulist = fits.open('final_image_corr.fits')
+        pixelscale,note = rebin_image.resolution(fname)
+        hdulist = fits.open(fname)
         header = hdulist[0].header 
         m0 = float(header['m0'])
         
-        auto_masking.main('final_image.fits', output_region_file='final_mask.reg', snr=2., min_pix=5, region_type='polygon', sextr_setup=None, galaxy_ellipse=None, offset_size=1.5, offset_pix=0., verbosity=True)
+        auto_masking.main(m0_image, output_region_file='final_mask.reg', snr=2., min_pix=5, region_type='polygon', offset_size=1.5, offset_pix=0., verbosity=True)
 
         if opsyst=='Linux':
             ds9Proc = subprocess.Popen(["ds9", 'final_image.fits',
@@ -257,13 +259,16 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
  
     if 9 in steps:
         # Creating enhanced image 
-        pixelscale,note = rebin_image.resolution('final_image.fits')
-        hdulist = fits.open('final_image.fits')
+        m0_image = glob.glob('*_m0.fits')[0]
+        fname  = str(input('Enter an image with m0 (%s). \n' % (m0_image)) or m0_image)
+
+        pixelscale,note = rebin_image.resolution(fname)
+        hdulist = fits.open(fname)
         header = hdulist[0].header 
         m0 = float(header['m0'])
         
-        galaxy_name = str(input('\n Enter galaxy name:') or '')
-        png_image = plot_smoothed_image.main('final_image.fits', 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False')
+        galaxy_name = str(input('\nEnter galaxy name:') or '')
+        png_image = plot_smoothed_image.main(fname, 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False')
         
 
 
@@ -277,6 +282,8 @@ if __name__ == '__main__':
     print("Step 5: Fixing astrometry.")
     print("Step 6: Median stacking.")
     print("Step 7: Photometric calibration.")
+    print("Step 8: Test for photometric depth.")
+    print("Step 9: Creating an enhanced image.")
     parser = argparse.ArgumentParser(description="Photometric Data Reduction:")
     parser.add_argument("--steps", nargs='?', const=1, help="Specify steps separated by comma", type=str, default='1,2,3,4,5')
     parser.add_argument("--cals", nargs='?', const=1, help="Provide the path to calibrations", type=str, default=None)    

@@ -80,12 +80,12 @@ def sky_in_boxes(input_image, m0, pix2sec, mask_image=None, box_size_arcsec=10.,
     
     if units=='mag':
         limit = m0-2.5*math.log10(n_sigma*median_STD/(pix2sec**2 * math.sqrt(box_size*box_size)))
-        if verbosity: print('SB limit within %ix%i arcsec^2 at %i*sigma: %.9f mag arcsec-2' % (int(box_size_arcsec),int(box_size_arcsec),n_sigma,limit))
+        if verbosity: print('SB limit within %ix%i arcsec^2 at %i*sigma: %.2f mag arcsec-2' % (int(box_size_arcsec),int(box_size_arcsec),n_sigma,limit))
     else:
         limit = n_sigma*median_STD/( math.sqrt(box_size*box_size))
         if verbosity: print('SB limit at %ix%i arcsec^2 %i*sigma: %.2f ADU' % (int(box_size_arcsec),int(box_size_arcsec),n_sigma,limit))
     
-    if verbosity: print(limit, median_MEAN, median_MEDIAN, std_MEDIAN, median_STD) 
+    #if verbosity: print(limit, median_MEAN, median_MEDIAN, std_MEDIAN, median_STD) 
     
     if upper==False:
         return limit, median_MEAN, median_MEDIAN, std_MEDIAN, median_STD 

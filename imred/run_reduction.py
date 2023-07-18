@@ -267,8 +267,10 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         header = hdulist[0].header 
         m0 = float(header['m0'])
         
+        output_image = fname.split('.fits')[0] + '.png'
+        
         galaxy_name = str(input('\nEnter galaxy name:') or '')
-        png_image = plot_smoothed_image.main(fname, 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False')
+        png_image = plot_smoothed_image.main(fname, 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False', output_image=output_image)
         
 
 

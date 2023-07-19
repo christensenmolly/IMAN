@@ -31,7 +31,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from astropy.stats import sigma_clipped_stats
 import scipy.ndimage as ndimage
 import warnings
-from photutils import make_source_mask
+try:
+    from photutils import make_source_mask
+except:
+    zz=1
 from astropy.stats import sigma_clipped_stats
 
 
@@ -336,7 +339,7 @@ def main(composed_model_file,min_level,pix2sec,m0,mask_file=None,
         if min_level==None:
             hdulist = pyfits.open(composed_model_file)
             data = hdulist[0].data
-            mask_I = make_source_mask(data, nsigma=2, npixels=5, dilate_size=11)
+            mask_I = make_source_mask(data, nsigma=2, npixels=5, dilate_size=11)  # TODO: Changed in photutils!!!
             mean, median, std = sigma_clipped_stats(data, sigma=3.0, mask=mask_I)
             
             #mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)

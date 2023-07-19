@@ -425,7 +425,7 @@ def main(input_image,m0,pix2sec,mask_image=None,profile = 'azim',xc=0.,yc=0.,PA=
               r = np.array(r)
               I = np.array(I)
               
-              
+            alpha=1.0
             if layer==0:
               color1 = 'gray'
               color2 = 'white'
@@ -435,6 +435,7 @@ def main(input_image,m0,pix2sec,mask_image=None,profile = 'azim',xc=0.,yc=0.,PA=
               color1 = 'red'
               color2 = 'red'
               mecolor = 'red'
+              alpha=0.5
               msize=3
               lyne_style = '-'
             if layer==2 or layer==3:
@@ -724,9 +725,9 @@ def main(input_image,m0,pix2sec,mask_image=None,profile = 'azim',xc=0.,yc=0.,PA=
                   
                 if layer!=0 and layer!=2 and layer!=3:
                   if AX==None:
-                    plt.plot(Radius, mag,lyne_style,color=color2,lw=2,label = Label) 
+                    plt.plot(Radius, mag,lyne_style,color=color2,lw=2,label = Label, alpha=alpha) 
                   else:
-                    AX.plot(Radius, mag,lyne_style,color=color2,lw=2,label = Label)
+                    AX.plot(Radius, mag,lyne_style,color=color2,lw=2,label = Label, alpha=alpha)
                     
                 if AX==None:
                   plt.legend(loc=1, borderaxespad=0.,fontsize=legend_size,numpoints=1)

@@ -213,6 +213,9 @@ def main(input_file, output_directory='./trial_fits', crea_model=True, geom_unit
 
     os.chdir(new_dir)
     
+    #print(input_image, sigma_image, psf_image, mask_image, input_file)
+    #exit()
+    
     if not os.path.exists(output_file):
         for file in [input_image, sigma_image, psf_image, mask_image, input_file]:
             if file != None and file != 'None' and file!= 'none':
@@ -227,7 +230,7 @@ def main(input_file, output_directory='./trial_fits', crea_model=True, geom_unit
         if code == 'galfit':
             if os.path.exists('galfit.01'):
                 if crea_model:
-                    make_model_ima_galfit.main(input_image, 'galfit.01', composed_model_file='composed_model.fits',
+                    make_model_ima_galfit.main(input_image, 'galfit.01', composed_model_file='composed_model.fits', comp_names=comp_names,
                                             subtract_sky=True, galfitPath=galfit_path)
                 os.remove('fit.log')
                 #output_file = 'galfit.01'

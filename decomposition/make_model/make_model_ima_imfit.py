@@ -66,7 +66,7 @@ def change_dim(input_image, input_file, full_image=False):
         mask = hdulist_mask[0].data
         #print(xmin,xmax,ymin,ymax,mask[ymin-1:ymax,xmin-1:xmax])
         outHDU = pyfits.PrimaryHDU(mask[ymin-1:ymax,xmin-1:xmax])
-        outHDU.writeto('mask_cropped.fits', clobber=True)         
+        outHDU.writeto('mask_cropped.fits', overwrite=True)         
     
     return xmin,xmax,ymin,ymax
 
@@ -109,7 +109,7 @@ def build_model_image(subcomp_image,model_image_inner,model_image_outer,Rbreak):
   hdu.append(pyfits.ImageHDU(model_image))
   hdu.append(pyfits.ImageHDU(residual_image))
 
-  hdu.writeto('model.fits',clobber=True)  
+  hdu.writeto('model.fits',overwrite=True)  
   
   
   return 'model.fits',disk_lum/total_lum,xc,zc

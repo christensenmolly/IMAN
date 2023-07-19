@@ -239,29 +239,32 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         header = hdulist[0].header 
         m0 = float(header['m0'])
         
-        auto_masking.main(m0_image, output_region_file='final_mask.reg', snr=2., min_pix=5, region_type='polygon', offset_size=1.5, offset_pix=0., verbosity=True)
+        final_mask = fname.split('.fits')[0] + '_final_mask.reg'
+        
+        auto_masking.main(m0_image, output_region_file=final_mask, snr=2., min_pix=5, region_type='polygon', offset_size=1.5, offset_pix=0., verbosity=True)
 
         if opsyst=='Linux':
-            ds9Proc = subprocess.Popen(["ds9", 'final_image.fits',
-                                                    "-regions", 'final_mask.reg',
+            ds9Proc = subprocess.Popen(["ds9", fname,
+                                                    "-regions", final_mask,
                                                     "-scale", "histequ"])
             ds9Proc.wait()
         elif opsyst=='Darwin':
             #subprocess.call(["open","-W","-n","-a","/Applications/SAOImageDS9.app",input_image,"-regions", 'general_mask.reg',"-scale", "histequ"])
-            ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", 'final_image.fits',
-                                                    "-regions", 'final_mask.reg',
+            ds9Proc = subprocess.Popen(["/Applications/SAOImageDS9.app/Contents/MacOS/ds9", fname,
+                                                    "-regions", final_mask,
                                                     "-scale", "histequ"])
             ds9Proc.wait()
         
-        convert_reg_to_mask.mask('final_image.fits', 'final_mask.reg', output_image=None, output_mask='final_mask.fits', mask_value=1, mask_DN=None, verbosity=True)
+        convert_reg_to_mask.mask(fname, final_mask, output_image=None, output_mask=fname.split('.fits')[0] + '_final_mask.fits', mask_value=1, mask_DN=None, verbosity=True)
         
-        test_for_deepness.sky_in_boxes('final_image.fits', m0, float(pixelscale), mask_image='final_mask.fits', box_size_arcsec=10., Nboxes=1000, n_sigma=3, units='mag', upper=False, verbosity=True)
+        test_for_deepness.sky_in_boxes(fname, m0, float(pixelscale), mask_image=fname.split('.fits')[0] + '_final_mask.fits', box_size_arcsec=10., Nboxes=1000, n_sigma=3, units='mag', upper=False, verbosity=True)
  
     if 9 in steps:
         # Creating enhanced image 
         m0_image = glob.glob('*_m0.fits')[0]
         fname  = str(input('Enter an image with m0 (%s). \n' % (m0_image)) or m0_image)
-
+        final_mask = fname.split('.fits')[0] + '_final_mask.reg'
+        
         pixelscale,note = rebin_image.resolution(fname)
         hdulist = fits.open(fname)
         header = hdulist[0].header 
@@ -270,7 +273,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         output_image = fname.split('.fits')[0] + '.png'
         
         galaxy_name = str(input('\nEnter galaxy name:') or '')
-        png_image = plot_smoothed_image.main(fname, 'final_mask.fits', galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False', output_image=output_image)
+        png_image = plot_smoothed_image.main(fname, final_mask, galaxy_name, m0, float(pixelscale), SB_bright=24.0, SB_faint=28.0, sigma_smooth=2.0, add_axes='False', output_image=output_image)
         
 
 

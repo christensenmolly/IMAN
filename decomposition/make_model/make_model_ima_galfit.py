@@ -114,7 +114,7 @@ def add_keyw_to_header(input_image,level,keyword,value):
   prihdr.append((str(keyword),value),end=True)
   hdulist.flush()  
 
-def main(input_image, model_file, composed_model_file = 'composed_model.fits', subtract_sky=True, galfitPath='', full_image=False):
+def main(input_image, model_file, composed_model_file = 'composed_model.fits', comp_names=None, subtract_sky=True, galfitPath='', full_image=False):
   #print bcolors.OKBLUE+'\n\n************ Compiling final GALFIT model image ************' + bcolors.ENDC
 
   hdulist_input = pyfits.open(input_image)
@@ -231,9 +231,13 @@ def main(input_image, model_file, composed_model_file = 'composed_model.fits', s
   add_keyw_to_header(composed_model_file,2,'NAME_OF_LAYER','resid')
   add_keyw_to_header(composed_model_file,3,'NAME_OF_LAYER','resid')
 
-  for k in range(len(name_of_model)):
-    add_keyw_to_header(composed_model_file,k+4,'NAME_OF_LAYER',name_of_model[k])
-  
+  if comp_names is None:
+    for k in range(len(name_of_model)):
+        add_keyw_to_header(composed_model_file,k+4,'NAME_OF_LAYER',name_of_model[k])
+  else:
+    for k in range(len(comp_names)):
+        add_keyw_to_header(composed_model_file,k+4,'NAME_OF_LAYER',comp_names[k])
+        
   # Remove tmp files:
   os.remove(galf_image)
   os.remove('subcomps.fits')

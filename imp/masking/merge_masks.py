@@ -46,7 +46,7 @@ def main(input_masks, output_mask, verbosity=True):
             else:
                 FinalData = FinalData + Data
         hdu = pyfits.PrimaryHDU(FinalData, header_data)
-        hdu.writeto(output_mask, clobber=True)            
+        hdu.writeto(output_mask, overwrite=True)            
     if verbosity: print('Done!')
     
     

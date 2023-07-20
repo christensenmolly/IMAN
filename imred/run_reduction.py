@@ -263,7 +263,7 @@ def main(steps, cals_path=None, science_path=None, science_prefix=None, bias_pre
         # Creating enhanced image 
         m0_image = glob.glob('*_m0.fits')[0]
         fname  = str(input('Enter an image with m0 (%s). \n' % (m0_image)) or m0_image)
-        final_mask = fname.split('.fits')[0] + '_final_mask.reg'
+        final_mask = fname.split('.fits')[0] + '_final_mask.fits'
         
         pixelscale,note = rebin_image.resolution(fname)
         hdulist = fits.open(fname)

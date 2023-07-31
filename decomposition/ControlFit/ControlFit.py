@@ -265,7 +265,7 @@ def main(input_file, output_directory='./trial_fits', crea_model=True, geom_unit
         # else:
         #    mask_astropy = None
 
-        plot_profile.main('composed_model.fits', m0, pix2sec, mask_image='mask_cropped.fits', profile='azim', xc=xc, yc=yc, PA=0., Rmin=0., Rmax=0., step=1., zmin=0., zmax=0., output_file='azim.png', AX=None, geom_units='arcsec', SB_units='mag/arcsec2', Scale=0.1, legend_size=10, interp=False, FWHM=3., max_SB=None, min_SB=None, do_not_show_full_model=False, plot_symbs='o', text=None)
+        plot_profile.main('composed_model.fits', m0, pix2sec, mask_image='mask_cropped.fits', profile='azim', xc=xc, yc=yc, PA=0., Rmin=0., Rmax=0., step=1., zmin=0., zmax=0., output_file='azim.png', AX=None, geom_units='arcsec', SB_units='mag/arcsec2', Scale=0.1, legend_size=10, interp=False, FWHM=3., max_SB=31.99, min_SB=19, do_not_show_full_model=False, plot_symbs='o', text=None)
 
         # bin_centers, radial_prof = radial_profile.azimuthalAverage(data, center=[xc,yc], returnradii=True, binsize=step, weights=None, interpnan=False, mask=mask_astropy )
 

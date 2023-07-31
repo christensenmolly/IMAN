@@ -173,8 +173,8 @@ if __name__ == "__main__":
     L_bar = args.l
     n_jobs = args.proc
     
-    RA,DEC,R,Scale = np.loadtxt(input_file, usecols=[1,2,3,4], dtype=float, unpack=True)
-    name = np.loadtxt(input_file, usecols=[0], dtype=str, unpack=True)
+    RA,DEC,R,Scale = np.loadtxt(input_file, usecols=[1,2,3,4], dtype=float, unpack=True, skiprows=1)
+    name = np.loadtxt(input_file, usecols=[0], dtype=str, unpack=True, skiprows=1)
 
     # R in arcmin
     print('Downloading...')

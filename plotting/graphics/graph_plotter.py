@@ -147,7 +147,8 @@ def main(x,y,x_err=None,y_err=None,x_dim=None,y_dim=None,
 	 add_points=None,
 	 x_logscale=False,
 	 y_logscale=False,
-	 capsize=0.):
+	 capsize=0.,
+	 verbose=True):
   #print xticks, 'HERE'
   # Define all graph parameters:
   [ax, overlayed_number, output_image, plot_number, image_dims, clean_image] = figure
@@ -155,7 +156,8 @@ def main(x,y,x_err=None,y_err=None,x_dim=None,y_dim=None,
   [line_type, line_width, line_color] = line
   
   [label_x, label_y, label_font_size, label_color] = labels
-  print('Plotting: %s VS. %s' % (label_x, label_y)) 
+  if verbose:
+    print('Plotting: %s VS. %s' % (label_x, label_y))
   
   if regression_line!=None:
     if len(regression_line)==4:

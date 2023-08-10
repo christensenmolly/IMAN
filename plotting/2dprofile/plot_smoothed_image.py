@@ -43,6 +43,7 @@ def roundup(x, round_number=10):
 
 
 def add_scale_bar(ax, nx, ny, pix2sec, kpc_per_arc=None, L_bar=60.):
+    if L_bar is not None:
         #if Distance!=None:
         #kpc_per_arc = 4.84*float(Distance)/1000.
         #L_bar = roundup((nx/5.)*pix2sec*kpc_per_arc, round_number=1)

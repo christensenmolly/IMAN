@@ -85,18 +85,19 @@ def is_ellipse_inside_frame(ellipse, x_size, y_size, margin=5):
     return False
 
 
-def main(input_image, output_model=None, azim_tab='azim_model.txt', mask_image=None, xcen=-1, ycen=-1, ell=0., posang=0., sma_min=-1, sma_max=-1, step=1., sigma_sky=None, sigma_cal=None, outside_frame=False, center_model=False, stop_where_negative=False, verbosity=True, linear=True):
+def main(input_image, layer=0, output_model=None, azim_tab='azim_model.txt', mask_image=None, xcen=-1, ycen=-1, ell=0., posang=0., sma_min=-1, sma_max=-1, step=1., sigma_sky=None, sigma_cal=None, outside_frame=False, center_model=False, stop_where_negative=False, verbosity=True, linear=True):
     
     #data = fits.getdata(input_image)
     hdulist = fits.open(input_image)#, ignore_missing_end=True)
-    data = hdulist[0].data
-    header = hdulist[0].header
+    data = hdulist[layer].data
+    header = hdulist[layer].header
     
     if mask_image is not None:
         mask = fits.getdata(mask_image)
     else:
         mask = None
-    
+
+
     y_size, x_size = data.shape
     
     if x_size%2==0:
@@ -242,6 +243,7 @@ def main(input_image, output_model=None, azim_tab='azim_model.txt', mask_image=N
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("input_image", help="Name of image file")
+    parser.add_argument("--layer", help="Data cube layer. Default is 0", default=0, type=int)
     parser.add_argument("--output_model", help="Name of output model",
                         type=str, default=None) #'azim_model.fits'
     parser.add_argument("--azim_tab", help="Name of output model",
@@ -273,6 +275,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     input_image = args.input_image
+    layer = args.layer
     output_model = args.output_model
     azim_tab = args.azim_tab
     mask_image = args.mask_image
@@ -292,4 +295,4 @@ if __name__ == '__main__':
     
     
     
-    main(input_image, output_model, azim_tab, mask_image, xcen, ycen, ell, posang, sma_min, sma_max, step, sigma_sky, sigma_cal, outside_frame=outside_frame, linear=linear)
+    main(input_image, layer, output_model, azim_tab, mask_image, xcen, ycen, ell, posang, sma_min, sma_max, step, sigma_sky, sigma_cal, outside_frame=outside_frame, linear=linear)

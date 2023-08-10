@@ -68,7 +68,10 @@ def resize_deep_images(deep_image, output_image):
     
     wpercent = (basewidth/float(img.size[0]))
     hsize = int((float(img.size[1])*float(wpercent)))
-    img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    try:
+        img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    except:
+        img = img.resize((basewidth,hsize), Image.Resampling.LANCZOS) # ANTIALIAS was removed in Pillow 10.0.0
     if not '.png' in output_image:
         img = img.convert("RGB") # Remove this if you want png!!!!
     img.save(output_image) 

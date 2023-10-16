@@ -127,7 +127,7 @@ def resize_deep_images(deep_image, output_image, R=0., PA=0., resolution=600, br
     
 
 
-def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./legacy',L_bar=30., output_file=None):
+def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./legacy',L_bar=30., output_file=None, dr='dr9'):
     # R in arcmin
     
     if output_file is None:
@@ -135,9 +135,14 @@ def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, b
 
     try:
            RR = int(math.ceil(R*60./pixscale))
-           url="http://legacysurvey.org/viewer/jpeg-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=dr8&pixscale=%.3f&bands=grz" % (RA, DEC, 2*RR, 2*RR, pixscale) 
+ 
+           if dr=='dr8':
+                url="http://legacysurvey.org/viewer/jpeg-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=dr8&pixscale=%.3f&bands=grz" % (RA[k], DEC[k], 2*RR, 2*RR, pixscale) 
+           else:
+                url="http://legacysurvey.org/viewer/jpeg-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=ls-%s&pixscale=%.3f&bands=grz" % (RA, DEC, 2*RR, 2*RR, dr, pixscale)          
+           
            urllib.request.urlretrieve(url, 'tmp_%s.jpg' % (name))
-
+           
            resize_deep_images('tmp_%s.jpg' % (name), output_file,RR, PA, resolution=resolution, brightness_factor=brightness_factor, contrast_factor=contrast_factor, sharpness_factor=sharpness_factor,sigma_smooth=5., invert=invert, composite=composite, text=name, pix2sec=pixscale, kpc_per_arc=kpc_per_arc, hor_pos=0.03, vert_pos=0.93, L_bar=L_bar) # TODO: brightness_factor, contrast_factor, sharpness_factor can be tuned!
            # brightness_factor=3, contrast_factor=5., sharpness_factor=0.01
            os.remove('tmp_%s.jpg' % (name))
@@ -159,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument("--o", nargs='?', const=1, help="Optional: output directory", type=str, default='./legacy')
     parser.add_argument("--l", nargs='?', const=1, help="Optional: length of the scale bar in arcsec", type=float, default=30.)    
     parser.add_argument("--proc", nargs='?', const=1, help="Optional: number of processes", type=int, default=1)
-
+    parser.add_argument("--dr", nargs='?', const=1, help="Optional: data release", type=str, default='dr9')
     
     args = parser.parse_args()
     
@@ -172,6 +177,7 @@ if __name__ == "__main__":
     output_dir = args.o
     L_bar = args.l
     n_jobs = args.proc
+    dr = args.dr
     
     RA,DEC,R,Scale = np.loadtxt(input_file, usecols=[1,2,3,4], dtype=float, unpack=True)
     name = np.loadtxt(input_file, usecols=[0], dtype=str, unpack=True)
@@ -185,7 +191,7 @@ if __name__ == "__main__":
     kpc_per_arc = [float('nan')] * len(RA)
     PA = [0.01] * len(RA)
     
-    Parallel(n_jobs=n_jobs)(delayed(main)(k, name[k], RA[k], DEC[k], R[k], PA[k], kpc_per_arc[k], pixscale=0.262, resolution=600, brightness_factor=brightness_factor, contrast_factor=contrast_factor,sharpness_factor=sharpness_factor, invert=True, output_dir=output_dir,L_bar=L_bar) for k in range(len(name)))
+    Parallel(n_jobs=n_jobs)(delayed(main)(k, name[k], RA[k], DEC[k], R[k], PA[k], kpc_per_arc[k], pixscale=0.262, resolution=600, brightness_factor=brightness_factor, contrast_factor=contrast_factor,sharpness_factor=sharpness_factor, invert=True, output_dir=output_dir,L_bar=L_bar, dr=dr) for k in range(len(name)))
     
     #main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, output_dir='./legacy',L_bar=30.)
     

@@ -234,6 +234,7 @@ def main(table, targets, names, local_time_start='2023-05-17 00:05:00', local_ti
     sel_targets = []
     for i in range(len(targets)):
         target = targets[i]
+
         #delta_t = t_end - t_start
         #observe_time = t_start + delta_t*np.linspace(0, 1, 75)
         #print(t_start+TimeDelta(60., format='sec'))

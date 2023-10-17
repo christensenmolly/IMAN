@@ -14,7 +14,7 @@ import numpy as np
 
 
 
-def main(name, RA, DEC, R, bands='grz', pixscale=0.262):
+def main(name, RA, DEC, R, bands='grz', pixscale=0.262, dr='dr9'):
     # R in arcmin
     print('Downloading...')
     RA = np.array(RA, float)
@@ -29,7 +29,10 @@ def main(name, RA, DEC, R, bands='grz', pixscale=0.262):
         if True:
            RR = int(math.ceil(R[k]*60./pixscale))
            output_file = '%s.fits' % (name[k])
-           url="http://legacysurvey.org/viewer/fits-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=dr8&pixscale=%.3f&bands=%s" % (RA[k], DEC[k], 2*RR, 2*RR, pixscale,bands) 
+           if dr=='dr8':
+                url="http://legacysurvey.org/viewer/fits-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=dr8&pixscale=%.3f&bands=%s" % (RA[k], DEC[k], 2*RR, 2*RR, pixscale,bands)
+           else:
+                url="http://legacysurvey.org/viewer/fits-cutout?ra=%f&dec=%f&width=%i&height=%i&layer=ls-%s&pixscale=%.3f&bands=%s" % (RA[k], DEC[k], 2*RR, 2*RR, dr, pixscale,bands)
            print('%i %s' % (k+1, name[k]))
            urllib.request.urlretrieve(url, output_file)
         else:
@@ -39,8 +42,10 @@ def main(name, RA, DEC, R, bands='grz', pixscale=0.262):
 
 
 
-#main(['PGC8299'], [2.17155*15.], [-10.32115], [2.*6*10**1.13/60.], [0.1], pixscale=0.262) 
+#main(['PGC8299'], [2.17155*15.], [-10.32115], [2.*6*10**1.13/60.], [0.1], pixscale=0.262, dr='dr10') 
+#main(['PSCC-2'], [0.348919], [-0.851931], [5.*6.022/60.], pixscale=0.262, dr='dr10') 
 
+'''
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download from Legacysurvey") 
     parser.add_argument("ra", help="Right ascension [deg]", type=float)
@@ -62,3 +67,4 @@ if __name__ == '__main__':
     R = width/2.
     
     main([name], [ra], [dec], [R], bands, pixscale=0.262)
+'''

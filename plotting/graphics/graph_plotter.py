@@ -67,6 +67,7 @@ def RegrLine(xxx, yyy, xx1, xx2, yy1, yy2, i, sigma_outliers=None):
                 Dist.append( abs(k4*xx[k]-yy[k]+b4) / ( sqrt(k4*k4+1.) ) )
                 
             std_dist = np.std(Dist)    
+
             for k in range(len(xx)):                
                 if Dist[k]<=sigma_outliers*std_dist:
                     XX.append(xx[k])

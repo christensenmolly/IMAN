@@ -129,6 +129,9 @@ def resize_deep_images(deep_image, output_image, R=0., PA=0., resolution=600, br
 
 def main(k, name, RA, DEC, R, PA, kpc_per_arc, pixscale=0.262, resolution=600, brightness_factor=4.0, contrast_factor=15.,sharpness_factor=0.01, invert=True, composite=True, output_dir='./legacy',L_bar=30., output_file=None, dr='dr9'):
     # R in arcmin
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
     
     if output_file is None:
         output_file = '%s.png' % (name)

@@ -26,6 +26,7 @@ sys.path.append(os.path.join(IMAN_DIR, 'decomposition/make_model'))
 sys.path.append(os.path.join(IMAN_DIR, 'plotting/2dprofile'))
 sys.path.append(os.path.join(IMAN_DIR, 'plotting/1dprofile'))
 sys.path.append(os.path.join(IMAN_DIR, 'deca/deca_tk_lib'))
+sys.path.append(os.path.join(IMAN_DIR, 'imp/rotate'))
 import make_model_ima_galfit
 import make_model_ima_imfit
 import plot_2d_profile
@@ -33,6 +34,8 @@ import plot_profile
 import radial_profile
 import tex_creator
 import plot_oned_profile
+import rotate_image
+import create_cumulative_profile
 
 tmp_out = sys.stdout
 FNULL = open(os.devnull, 'w')
@@ -193,7 +196,7 @@ def determine_new_dir(code, output_directory):
 
 
 def main(input_file, output_directory='./trial_fits', crea_model=True, geom_units='arcsec', lum_units='lum',
-         SB_units='mag/arcsec2', verbose=False, min_level=27., m0=None, pix2sec=None, new_dir=None, comp_names=[], sigma=None, show_negative=True, oned=False):
+         SB_units='mag/arcsec2', verbose=False, min_level=27., m0=None, pix2sec=None, new_dir=None, comp_names=[], sigma=None, show_negative=True, oned=False, PA=0., plot_profiles=['azim'], Rmax=0., zmax=0.):
 
     current_dir = os.getcwd()
 
@@ -250,22 +253,35 @@ def main(input_file, output_directory='./trial_fits', crea_model=True, geom_unit
 
     xc, yc = get_pars(output_file, code)
 
+    if PA!=0.:
+        # Rotate composed_model.fits:
+        rotate_image.main('composed_model.fits', PA, xc=xc, yc=yc, output_image='composed_model_rot.fits', hdu_inp='all', cval=float('nan'), cropping=False, verbosity=True)
+        rotate_image.main('mask_cropped.fits', PA, xc=xc, yc=yc, output_image='mask_cropped_rot.fits', hdu_inp='all', cval=float('nan'), cropping=False, verbosity=True)
+
+
     if not oned:
-        # Plot 2d 
-        plot_2d_profile.main('composed_model.fits', min_level, pix2sec, m0, mask_file='mask_cropped.fits',
+        # Plot 2d
+        if PA!=0.:
+            composed_file = 'composed_model_rot.fits'
+            mask_file = 'mask_cropped_rot.fits'
+        else:
+            composed_file = 'composed_model.fits'
+            mask_file = 'mask_cropped.fits'
+
+        plot_2d_profile.main(composed_file, min_level, pix2sec, m0, mask_file=mask_file,
                             borders='0,0,0,0', output_file='plot_2d.png', view='line', color='nipy_spectral_r',
                             scale_bar=None, grid=None, show_bar_label='yes', region=None, text=None, show_negative=show_negative,
                             sigma=sigma)
 
-        # Plot 1d (azimuthally averaged)
-        # if mask_image is not None:
-        #    hdu_mask = pyfits.open(mask_image)
-        #    mask = hdu_mask[0].data        
-        #    mask_astropy = np.ones_like(np.array(mask,dtype=float),dtype=bool)
-        # else:
-        #    mask_astropy = None
 
-        plot_profile.main('composed_model.fits', m0, pix2sec, mask_image='mask_cropped.fits', profile='azim', xc=xc, yc=yc, PA=0., Rmin=0., Rmax=0., step=1., zmin=0., zmax=0., output_file='azim.png', AX=None, geom_units='arcsec', SB_units='mag/arcsec2', Scale=0.1, legend_size=10, interp=False, FWHM=3., max_SB=31.99, min_SB=19, do_not_show_full_model=False, plot_symbs='o', text=None)
+        if 'azim' in plot_profiles:
+            plot_profile.main(composed_file, m0, pix2sec, mask_image=mask_file, profile='azim', xc=xc, yc=yc, PA=0., Rmin=0., Rmax=0., step=1., zmin=0., zmax=0., output_file='azim.png', AX=None, geom_units='arcsec', SB_units='mag/arcsec2', Scale=0.1, legend_size=10, interp=False, FWHM=3., max_SB=31.99, min_SB=19, do_not_show_full_model=False, plot_symbs='o', text=None)
+
+        if 'vert' in profiles:
+            create_cumulative_profile.main(composed_file, m0, pix2sec, mask_image=mask_file, profile = 'vert', xc=0., yc=0., PA=0.,Rmin=0.,Rmax=Rmax,step=1.,zmin=0.,zmax=zmax,output_file='vert.png',AX=None, geom_units='arcsec',SB_units='mag/arcsec2',Scale=0.1, legend_size=6, interp=False, FWHM=3.,max_SB=None,min_SB=None, do_not_show_full_model=False, plot_symbs='o',text=None, comps=None, method='mean', start_from_zero=True,add_legend=True)
+
+        if 'summed' in profiles:
+            create_cumulative_profile.main(composed_file, m0, pix2sec, mask_image=mask_file, profile = 'summed', xc=0., yc=0., PA=0.,Rmin=0.,Rmax=Rmax,step=1.,zmin=0.,zmax=zmax,output_file='summed.png',AX=None, geom_units='arcsec',SB_units='mag/arcsec2',Scale=0.1, legend_size=6, interp=False, FWHM=3.,max_SB=None,min_SB=None, do_not_show_full_model=False, plot_symbs='o',text=None, comps=None, method='mean', start_from_zero=True,add_legend=True)
 
         # bin_centers, radial_prof = radial_profile.azimuthalAverage(data, center=[xc,yc], returnradii=True, binsize=step, weights=None, interpnan=False, mask=mask_astropy )
 
@@ -310,11 +326,15 @@ if __name__ == '__main__':
     parser.add_argument("--comps", help="Optional: Names of components in the order", type=str, default=None)
     parser.add_argument("--sigma", help="Optional: Smoothing of the output image", type=float, default=None)
     parser.add_argument("--SBfaint", help="Optional: Faintest SB level to show", type=float, default=25.)
-    parser.add_argument("--neg", action="store_true", default=False,
+    parser.add_argument("--neg", action="store_true", default=True,
                         help="Show negative values in the output 2D image")      
     parser.add_argument("--oned", action="store_true", default=False,
                         help="Fitting of 1D profile")   
-    
+    parser.add_argument("--PA", help="Optional: Position angle of the galaxy major axis [deg] rotated clockwise: Up=90, Right=0", type=float, default=0.)
+    parser.add_argument("--profiles", help="Optional: Types of profiles to be plotted: azim, vert, summed", type=str, default='azim')
+    parser.add_argument("--Rmax", help="Optional: Maximum radius of the galaxy in pix", type=float, default=0.)
+    parser.add_argument("--zmax", help="Optional: Maximum height of the galaxy in pix", type=float, default=0.)
+
     args = parser.parse_args()
 
     input_file = args.input_file
@@ -335,6 +355,11 @@ if __name__ == '__main__':
     SBfaint = args.SBfaint
     show_negative = args.neg
     oned = args.oned
+    PA = args.PA
+    profiles = args.profiles
+    Rmax = args.Rmax
+    zmax = args.zmax
+
 
     
-    main(input_file, m0=m0, pix2sec=pix2sec, new_dir=new_dir, comp_names=comp_names, sigma=sigma, min_level=SBfaint, show_negative=show_negative, oned=oned)
+    main(input_file, m0=m0, pix2sec=pix2sec, new_dir=new_dir, comp_names=comp_names, sigma=sigma, min_level=SBfaint, show_negative=show_negative, oned=oned, PA=PA, plot_profiles = profiles, Rmax=Rmax, zmax=zmax)

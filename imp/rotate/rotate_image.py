@@ -3,6 +3,7 @@
 # Script to rotate an image around the center of the frame over an arbitrary angle. It updates the header accordingly.
 # Rotation is done CW/x, i.e. 0 is right, 90 is down
 # MINIMAL USAGE: python rotate_image.py [input_image] [angle]
+# EXAMPLE: python3 ~/MyGit/IMAN/imp/rotate/rotate_image.py composed_model.fits 59 --hdu all
 
 import os
 import numpy as np
@@ -248,8 +249,9 @@ def pad_frame(img, xc, yc, cval=float('nan')):
 
     padX = [nx-xc, xc] #xc
     padY = [ny-yc, yc] #yc
+
     imgP = np.pad(img, [padY, padX], 'constant', constant_values=cval)
-    
+
     if xc>nx/2.:
         delta_x = min(padX)
     else:
@@ -421,50 +423,75 @@ def crop_back(input_image, padX, padY, delta_x, delta_y, output_image=None, hdu_
         
     
 
-def main(input_image, angle, xc=None, yc=None, output_image=None, hdu_inp=0, cval=float('nan'), cropping=False, verbosity=True): 
+def main(input_image, angle, xc=None, yc=None, output_image=None, hdu_inp=0, cval=float('nan'), cropping=False, verbosity=True):
         if verbosity: print('Rotating image...')
         hdu = pyfits.open(input_image)
-        data = hdu[hdu_inp].data
-        header = hdu[hdu_inp].header  
+
+
+        if hdu_inp=='all':
+            hdu_layers = range(len(hdu))
+            hdu_new = pyfits.HDUList()
+        else:
+            try:
+                hdu_layers = [int(hdu_inp)]
+            except:
+                hdu_layers = np.array(hdu_inp.split(','),int)
+
+
+        for hdu_layer in hdu_layers:
+            data = hdu[hdu_layer].data
+            header = hdu[hdu_layer].header
+            ny,nx = np.shape(data)
+
+            if xc is None or yc is None:
+                xc = nx/2.
+                yc = ny/2.
+
+            Xc = ds9_to_np(xc)
+            Yc = ds9_to_np(yc)
+
+            padX = [nx-Xc, Xc]
+            padY = [ny-Yc, Yc]
+            #print(padX, padY, ny,nx, Xc,Yc)
+
+            output_image_pad,delta_x,delta_y = pad_image(input_image, xc=Xc, yc=Yc, hdu_inp=hdu_layer, cval=cval)
+
+            output_image_rot = rotate_image(output_image_pad, angle, output_image=None, hdu_inp=0, cval=cval, verbosity=verbosity)
+
+            output_image_crop = crop_back(output_image_rot, padX, padY, delta_x, delta_y, cropping=cropping)
+
+            os.remove(input_image.split('.fits')[0]+'_pad.fits')
+            os.remove(input_image.split('.fits')[0]+'_pad_rot.fits')
+
+
         
-        ny,nx = np.shape(data)
+            if len(hdu_layers)==1:
+                if output_image is None:
+                    output_image = input_image.split('.fits')[0] + '_rot.fits'
+                shutil.move(output_image_crop, output_image)
+            else:
+                #shutil.move(output_image_crop, input_image.split('.fits')[0] + '_%i_rot.fits' % (hdu_layer))
+                hdu_layer_new = pyfits.open(output_image_crop)
+                hdu_new.append(pyfits.ImageHDU(hdu_layer_new[0].data, hdu_layer_new[0].header))
+                os.remove(output_image_crop)
 
-        if xc is None or yc is None:
-            xc = nx/2.
-            yc = ny/2.
-            
-        xc = ds9_to_np(xc)
-        yc = ds9_to_np(yc)
+        if len(hdu_layers)!=1:
+            if output_image is None:
+                output_image = input_image.split('.fits')[0] + '_rot.fits'
+            hdu_new.writeto(output_image, overwrite=True)
 
-        padX = [nx-xc, xc]
-        padY = [ny-yc, yc]
-
-    
-        output_image_pad,delta_x,delta_y = pad_image(input_image, xc=xc, yc=yc, hdu_inp=hdu_inp, cval=cval)
-
-        output_image_rot = rotate_image(output_image_pad, angle, output_image=None, hdu_inp=0, cval=cval, verbosity=verbosity)
-     
-        output_image_crop = crop_back(output_image_rot, padX, padY, delta_x, delta_y, cropping=cropping)
-        
-        os.remove(input_image.split('.fits')[0]+'_pad.fits')
-        os.remove(input_image.split('.fits')[0]+'_pad_rot.fits')
-
-        if output_image is None:
-                output_image = input_image.split('.fits')[0] + '_rot.fits'         
-        
-        shutil.move(output_image_crop, output_image)
         if verbosity: print('Done!')
-        return xc,yc
+        return Xc,Yc
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Rotation")
     parser.add_argument("input_image", help="Input image")    
-    parser.add_argument("angle", help="Angle [deg]", type=float)
+    parser.add_argument("angle", help="Position angle [deg] rotated clockwise: Up=90, Right=0", type=float)
     parser.add_argument("--c", help="Optional: pixel coordinates separated by comma, default the center of the frame", type=str, default=None)
     parser.add_argument("--output_image", help="Optional: Output image", type=str, default=None) 
-    parser.add_argument("--hdu", help="Optional: HDU layer", type=int, default=0)
+    parser.add_argument("--hdu", help="Optional: HDU layer", type=str, default='0')
     parser.add_argument("--cval", help="Optional: Value used for points outside the boundaries of the input, default is nan", type=str, default='nan')
     parser.add_argument("--crop", action="store_true", default=False,
                         help="Crop output image to match the input one")  

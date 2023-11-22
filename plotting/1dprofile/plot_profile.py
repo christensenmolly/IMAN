@@ -277,11 +277,11 @@ def main(input_image,m0,pix2sec,mask_image=None,profile = 'azim',xc=0.,yc=0.,PA=
                       #I.append(sum(data[int(yc+zmin):int(yc+zmax),x])+sum(data[int(yc-zmax):int(yc-zmin),x]))
                       #'''
                       II = []
-                      yranges = range(int(yc-zmax),int(yc-zmin),1) + range(int(yc+zmin),int(yc+zmax))
+                      yranges = np.concatenate((np.array(range(int(yc-zmax),int(yc-zmin),1)), np.array(range(int(yc+zmin),int(yc+zmax)))))
                       for y in yranges:
                         #if mask[y,x]<0.9:
                         II.append(data[y,x])                          
-                      mean, median, std = sigma_clipped_stats(II, sigma=5.0, iters=5)
+                      mean, median, std = sigma_clipped_stats(II, sigma=5.0, maxiters=5)
                       I.append(median)
                       #'''
                       r.append(x-xc)

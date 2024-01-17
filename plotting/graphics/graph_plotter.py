@@ -25,6 +25,9 @@ import matplotlib as mpl
 mpl.style.use('classic')
 mpl.rcParams['errorbar.capsize'] = 3
 
+#plt.rcParams['font.family'] = 'sans-serif'
+#plt.rcParams['font.sans-serif'] = ['Tahoma']
+
 def find_regression(xx, yy):
         #k1, b1, r_value, p_value, err, err1 = stats.linregress(xx,yy)
         res = stats.linregress(xx,yy)
@@ -224,9 +227,9 @@ def main(x,y,x_err=None,y_err=None,x_dim=None,y_dim=None,
     else:
         k,b,r_value,slope_err,intercept_err = RegrLine(x,y,minx,maxx,miny,maxy,3)
     if b>=0.:
-        print('\t Regression line: Y = %.3f * X + %.3f (r=%.2f)\n' % (k,b,r_value))
+        print('\t Regression line: Y = (%.3f+/-%.3f) * X + (%.3f+/-%.3f) (r=%.2f)\n' % (k,slope_err,b,intercept_err,r_value))
     else:
-        print('\t Regression line: Y = %.3f * X - %.3f (r=%.2f)\n' % (k,abs(b),r_value))
+        print('\t Regression line: Y = (%.3f+/-%.3f) * X - (%.3f+/-%.3f) (r=%.2f)\n' % (k,slope_err,abs(b),intercept_err,r_value))
         
     if plot_all_regr_line == 'yes':
         x_regr = np.arange(xmin,xmax,(xmax-xmin)/100.)
@@ -344,8 +347,13 @@ def main(x,y,x_err=None,y_err=None,x_dim=None,y_dim=None,
   if yticks is not None:
     ax.set_yticks(yticks) 
  
+  #plt.yticks(fontname = "Times New Roman")
+
+
+
+
   if output_image!=None:
-    plt.savefig(output_image, transparent = False, dpi=200, bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(output_image, transparent = False, dpi=300, bbox_inches='tight', pad_inches=0.05)
   else:
     if clean_image==True:
       plt.show()

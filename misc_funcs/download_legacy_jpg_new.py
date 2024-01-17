@@ -32,7 +32,7 @@ sys.path.append(os.path.join(IMAN_DIR, 'plotting/2dprofile'))
 import plot_smoothed_image
 
 def create_composite(Img, img):
-    thresh = 150
+    thresh = 100 #5 #100 #150
     fn = lambda x : 255 if x > thresh else 0
     r = img.convert('L').point(fn, mode='1')
 
@@ -95,7 +95,10 @@ def resize_deep_images(deep_image, output_image, R=0., PA=0., resolution=600, br
 
     wpercent = (basewidth/float(img.size[0]))
     hsize = int((float(img.size[1])*float(wpercent)))
-    img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    try:
+        img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+    except:
+        img = img.resize((basewidth,hsize), Image.Resampling.LANCZOS)
     img = img.convert("RGB") # Remove this if you want png!!!!
     #img.save(output_image) 
     
